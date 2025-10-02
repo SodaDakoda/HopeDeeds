@@ -3,8 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - HopeDeeds</title>
+    <title>Dashboard | HopeDeeds Volunteer Management</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
   </head>
   <body>
     <header>
@@ -14,65 +19,211 @@
           <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="opportunities.html">Opportunities</a></li>
-            <li><a href="login.html">Logout</a></li>
-            <li><a href="#">Settings</a></li>
+            <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            <li><a href="login.html" class="btn btn-secondary">Log Out</a></li>
           </ul>
         </nav>
       </div>
     </header>
 
     <main>
-      <div class="container">
-        <h1>Welcome Back, Volunteer! 👋</h1>
+      <div class="container dashboard-layout">
+        <!-- Left Column: Profile and Hours -->
+        <div class="main-dashboard-area">
+          <h1 id="welcome-message">Welcome Back, Volunteer!</h1>
 
-        <div class="dashboard-layout">
-          <div class="main-stats">
-            <div class="dashboard-section hours-log">
-              <h2>My Hours Logged</h2>
-              <p>125.5</p>
-              <small>Total hours contributed to date.</small>
+          <section class="dashboard-section profile-card">
+            <h2><i class="fas fa-user-circle"></i> My Profile Details</h2>
+            <table class="profile-table">
+              <tr>
+                <th>Full Name</th>
+                <td id="data-full-name">Loading...</td>
+              </tr>
+              <tr>
+                <th>Email</th>
+                <td id="data-email">Loading...</td>
+              </tr>
+              <tr>
+                <th>Phone</th>
+                <td id="data-phone">Loading...</td>
+              </tr>
+              <tr>
+                <th>Birthdate</th>
+                <td id="data-birthdate">Loading...</td>
+              </tr>
+              <tr>
+                <th>Zipcode</th>
+                <td id="data-zipcode">N/A</td>
+              </tr>
+              <tr>
+                <th>Emergency Contact</th>
+                <td id="data-emergency-contact">N/A</td>
+              </tr>
+              <tr>
+                <th>Waiver Agreed</th>
+                <td id="data-waiver">
+                  <span class="status-active">Yes (Date Loaded)</span>
+                </td>
+              </tr>
+            </table>
+            <div class="action-buttons">
+              <button class="btn btn-primary">Update Profile</button>
             </div>
+          </section>
 
-            <div class="dashboard-section">
-              <h2>My Upcoming Shifts</h2>
-              <ul class="shift-list">
-                <li>
-                  <span>Kitchen Prep at Shelter</span>
-                  <strong>Fri, Oct 10th | 4:00 PM - 7:00 PM</strong>
-                </li>
-                <li>
-                  <span>Intake Greeter</span>
-                  <strong>Mon, Oct 13th | 9:00 AM - 12:00 PM</strong>
-                </li>
-                <li>
-                  <span>Warehouse Sorting</span>
-                  <strong>Sat, Oct 25th | 1:00 PM - 5:00 PM</strong>
-                </li>
-              </ul>
+          <section class="dashboard-section">
+            <h2><i class="fas fa-chart-line"></i> Lifetime Impact</h2>
+            <div class="hours-log">
+              <p id="total-hours">52.5</p>
+              <h3>Hours Logged</h3>
             </div>
-          </div>
+          </section>
 
-          <div class="quick-actions">
-            <div class="dashboard-section action-buttons">
-              <h2>Quick Actions</h2>
-              <a href="opportunities.html" class="button btn-secondary"
-                >Sign Up for New Shifts</a
+          <section class="dashboard-section">
+            <h2><i class="fas fa-clipboard-list"></i> Upcoming Shifts</h2>
+            <ul class="shift-list">
+              <li>
+                <span>Park Cleanup - Oct 25, 2025 (8:00 AM)</span>
+                <button class="btn btn-secondary" style="padding: 8px 15px">
+                  View Details
+                </button>
+              </li>
+              <li>
+                <span>Food Bank Sorting - Nov 1, 2025 (2:00 PM)</span>
+                <button class="btn btn-secondary" style="padding: 8px 15px">
+                  View Details
+                </button>
+              </li>
+              <li id="no-shifts" style="display: none">
+                No upcoming shifts found.
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <!-- Right Column: Quick Links / Notifications -->
+        <div class="sidebar-dashboard-area">
+          <section class="dashboard-section">
+            <h2><i class="fas fa-bell"></i> Notifications</h2>
+            <p>Thank you for signing up!</p>
+            <p>New opportunities posted: Food Delivery Assistants needed.</p>
+          </section>
+
+          <section class="dashboard-section">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="action-buttons">
+              <a href="opportunities.html" class="btn btn-secondary"
+                >Find New Opportunities</a
               >
-              <a href="#" class="button btn-primary">Upload Waiver (Updated)</a>
-              <a href="#" class="button btn-primary"
-                >View Orientation Training</a
-              >
-              <a href="#" class="button btn-primary">Update Profile</a>
+              <button class="btn btn-primary">Log New Hours</button>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </main>
 
     <footer>
       <div class="container footer-content">
-        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
+        <div class="footer-section">
+          <h4>HopeDeeds</h4>
+          <p>&copy; 2025 Volunteer Management Platform.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <p>Email: info@hopedeeds.org</p>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <ul class="social-links">
+            <li>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
       </div>
     </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get("email");
+
+        if (!email) {
+          // If no email is provided (e.g., user navigated here directly)
+          document.getElementById("welcome-message").textContent =
+            "Welcome! Please log in to view your dashboard.";
+          return;
+        }
+
+        // Function to format PostgreSQL date to a readable format
+        const formatDate = (isoDate) => {
+          if (!isoDate) return "N/A";
+          const date = new Date(isoDate);
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        };
+
+        // Fetch volunteer data from the new API endpoint
+        fetch(`/api/volunteer/${encodeURIComponent(email)}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Volunteer not found or server error (${response.status})`
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Update welcome message
+            document.getElementById(
+              "welcome-message"
+            ).textContent = `Welcome Back, ${data.full_name.split(" ")[0]}!`;
+
+            // Populate profile table
+            document.getElementById("data-full-name").textContent =
+              data.full_name;
+            document.getElementById("data-email").textContent = data.email;
+            document.getElementById("data-phone").textContent = data.phone;
+            document.getElementById("data-birthdate").textContent = formatDate(
+              data.birthdate
+            );
+            document.getElementById("data-zipcode").textContent =
+              data.zipcode || "N/A";
+            document.getElementById("data-emergency-contact").textContent =
+              data.emergency_contact || "N/A";
+
+            // Waiver status display
+            const waiverElement = document.getElementById("data-waiver");
+            if (data.waiver_agreed) {
+              waiverElement.innerHTML = `<span class="status-active"><i class="fas fa-check-circle"></i> Agreed (${formatDate(
+                data.waiver_agreed_at
+              )})</span>`;
+            } else {
+              waiverElement.innerHTML = `<span class="status-pending"><i class="fas fa-exclamation-triangle"></i> Pending</span>`;
+            }
+
+            // Simulated Dashboard Data (Hours) - Replace with actual fetch later
+            document.getElementById("total-hours").textContent = "12.5"; // Static mock data
+          })
+          .catch((error) => {
+            console.error("Fetch error:", error);
+            document.getElementById("welcome-message").textContent =
+              "Error loading profile.";
+            // Clear fields on error
+            document
+              .querySelectorAll('td[id^="data-"]')
+              .forEach((el) => (el.textContent = "Error"));
+          });
+      });
+    </script>
   </body>
 </html>

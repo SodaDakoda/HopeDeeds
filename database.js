@@ -1,77 +1,114 @@
-const sqlite3 = require("sqlite3").verbose();
-const DB_PATH = "./hopedeeds.db";
+const { Pool } = require("pg");
+// Connect using the DATABASE_URL environment variable you just set.
+const connectionString = process.env.DATABASE_URL;
 
-// Initialize the database connection
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error("Could not connect to database:", err.message);
-  } else {
-    console.log("Connected to the SQLite database.");
-    // Create the volunteer table if it doesn't exist
-    db.run(
-      `CREATE TABLE IF NOT EXISTS volunteers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            full_name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            phone TEXT NOT NULL,
-            birthdate TEXT NOT NULL,
-            zipcode TEXT,
-            emergency_contact TEXT,
-            waiver_agreed BOOLEAN NOT NULL,
-            waiver_agreed_at TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        )`,
-      (err) => {
-        if (err) {
-          console.error("Error creating table:", err.message);
-        } else {
-          console.log("Volunteer table ready.");
-        }
-      }
-    );
-  }
+if (!connectionString) {
+  console.error(
+    "CRITICAL: DATABASE_URL environment variable is not set. Cannot connect to PostgreSQL."
+  );
+  // Exit the process if the essential connection string is missing
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: connectionString,
+  // Required configuration for cloud services like Neon
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
+
+// Function to ensure the volunteer table exists
+const initializeDatabase = async () => {
+  try {
+    const client = await pool.connect();
+    const createTableQuery = `
+            CREATE TABLE IF NOT EXISTS volunteers (
+                id SERIAL PRIMARY KEY,
+                full_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                phone VARCHAR(255) NOT NULL,
+                birthdate DATE NOT NULL,
+                zipcode VARCHAR(10),
+                emergency_contact VARCHAR(255),
+                waiver_agreed BOOLEAN NOT NULL,
+                waiver_agreed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+        `;
+    await client.query(createTableQuery);
+    client.release();
+    console.log("PostgreSQL Volunteer table ready.");
+  } catch (err) {
+    console.error("Error initializing PostgreSQL table:", err.message);
+  }
+};
 
 /**
  * Inserts a new volunteer record into the database.
  * @param {object} data - Volunteer registration data.
  * @returns {Promise<number>} The ID of the inserted record.
  */
-const saveVolunteer = (data) => {
-  return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO volunteers (
+const saveVolunteer = async (data) => {
+  const sql = `
+        INSERT INTO volunteers (
             full_name, email, phone, birthdate, zipcode, emergency_contact, 
             waiver_agreed, waiver_agreed_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        RETURNING id;
+    `;
 
-    const timestamp = new Date().toISOString();
+  // We expect waiver_agreed to be 'true' or 'false' from the form submission
+  const waiverAgreedBool = data.waiver_agreed === "true";
+  const timestamp = new Date().toISOString();
 
-    // Prepare the values array
-    const values = [
-      data.full_name,
-      data.email,
-      data.phone,
-      data.birthdate,
-      data.zipcode || null,
-      data.emergency_contact || null,
-      data.waiver_agreed === "true" ? 1 : 0, // Convert boolean string to integer for SQLite
-      timestamp, // waiver_agreed_at uses the current submission time
-      timestamp, // created_at uses the current submission time
-    ];
+  const values = [
+    data.full_name,
+    data.email,
+    data.phone,
+    data.birthdate,
+    data.zipcode || null,
+    data.emergency_contact || null,
+    waiverAgreedBool,
+    timestamp,
+  ];
 
-    db.run(sql, values, function (err) {
-      if (err) {
-        console.error("Database insertion error:", err.message);
-        reject(new Error(`Database error: ${err.message}`));
-      } else {
-        console.log(`A new volunteer ID ${this.lastID} has been registered.`);
-        resolve(this.lastID);
-      }
-    });
-  });
+  try {
+    const res = await pool.query(sql, values);
+    const newId = res.rows[0].id;
+    console.log(`A new volunteer ID ${newId} has been registered.`);
+    return newId;
+  } catch (err) {
+    console.error("Database insertion error:", err.message);
+    throw err; // Re-throw the error for server.js to catch (e.g., unique email constraint)
+  }
 };
 
+/**
+ * Retrieves a volunteer's profile based on their email address.
+ * @param {string} email - The volunteer's email address.
+ * @returns {Promise<object | null>} The volunteer object or null if not found.
+ */
+const getVolunteerByEmail = async (email) => {
+  const sql = `
+        SELECT id, full_name, email, phone, birthdate, zipcode, emergency_contact, waiver_agreed, waiver_agreed_at, created_at
+        FROM volunteers
+        WHERE email = $1;
+    `;
+
+  try {
+    const res = await pool.query(sql, [email]);
+    return res.rows.length > 0 ? res.rows[0] : null;
+  } catch (err) {
+    console.error("Database retrieval error:", err.message);
+    throw err;
+  }
+};
+
+// Initialize the database connection and table on import
+initializeDatabase();
+
 module.exports = {
-  db,
   saveVolunteer,
+  getVolunteerByEmail,
 };
