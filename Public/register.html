@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - HopeDeeds</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Add a style block for compatibility since the original register.html used inline styles */
+      .waiver-link-box {
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        background-color: var(--accent-light);
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <div class="logo">Hope<span>Deeds</span></div>
+          <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="opportunities.html">Opportunities</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="form-container">
+        <h2>Volunteer Registration</h2>
+        <form action="/register" method="POST">
+          <p style="margin-bottom: 25px; font-style: italic">
+            Fill out your details below to start your journey with HopeDeeds!
+          </p>
+
+          <div class="form-group">
+            <label for="full_name">Full Name (Required)</label>
+            <input type="text" id="full_name" name="full_name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address (Required)</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="birthdate">Birthdate (Required)</label>
+            <input type="date" id="birthdate" name="birthdate" required />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number (Required)</label>
+            <input type="tel" id="phone" name="phone" required />
+          </div>
+          <div class="form-group">
+            <label for="zipcode">Zipcode (Optional)</label>
+            <input type="text" id="zipcode" name="zipcode" />
+          </div>
+          <div class="form-group">
+            <label for="emergency_contact">Emergency Contact (Optional)</label>
+            <input
+              type="text"
+              id="emergency_contact"
+              name="emergency_contact"
+            />
+          </div>
+
+          <!-- WAIVER LINK & AGREEMENT -->
+          <div class="waiver-link-box">
+            <label style="color: var(--dark)">Waiver Requirement</label>
+            <p style="font-size: 0.95rem; margin-bottom: 15px">
+              Please read the official
+              <a
+                href="waiver.html"
+                target="_blank"
+                style="font-weight: bold; color: var(--success)"
+                >HopeDeeds Volunteer Waiver</a
+              >
+              before proceeding.
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <input
+                type="checkbox"
+                id="waiver_agreed"
+                name="waiver_agreed"
+                value="true"
+                required
+                style="width: auto"
+              />
+              <label
+                for="waiver_agreed"
+                style="display: inline; font-weight: normal"
+              >
+                I confirm I have read and agree to the HopeDeeds Volunteer
+                Waiver
+              </label>
+            </div>
+          </div>
+          <!-- END WAIVER AGREEMENT -->
+
+          <button
+            type="submit"
+            class="button btn-secondary"
+            style="width: 100%; margin-top: 5px"
+          >
+            Submit Registration
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

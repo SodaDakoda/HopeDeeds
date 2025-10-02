@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HopeDeeds Volunteer Waiver</title>
+    <link rel="stylesheet" href="waiver.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Hope<span>Deeds</span></div>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="opportunities.html">Opportunities</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Registration</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="waiver-section">
+            <h1>HopeDeeds Volunteer Liability Waiver & Agreement</h1>
+            <p style="margin-bottom: 25px;">Please carefully review the terms below before agreeing to volunteer with HopeDeeds.</p>
+            
+            <p style="text-align: center; margin-bottom: 30px;">
+                <a href="https://placehold.co/600x400/0077b6/ffffff?text=HopeDeeds+Waiver+PDF" class="button btn-primary" target="_blank">Download Official Waiver PDF</a>
+            </p>
+
+            <!-- WAIVER TEXT AREA -->
+            <div class="waiver-text">
+                <h2>1. Release of Liability and Assumption of Risk</h2>
+                <p>I, the undersigned volunteer, acknowledge that my participation in HopeDeeds' activities and events, including but not limited to food preparation, distribution, administrative work, and transportation, exposes me to potential risks of personal injury, illness (including infectious diseases like COVID-19), property damage, or death. I understand and voluntarily assume these risks. I hereby release, indemnify, and hold harmless HopeDeeds, its officers, directors, employees, and agents from any and all liability, claims, demands, or causes of action arising out of or related to any loss, damage, injury, or death that may be sustained by me while participating in these volunteer activities...</p>
+
+                <h2>2. Code of Conduct and Confidentiality</h2>
+                <p>I agree to comply with all rules, policies, and instructions set forth by HopeDeeds, including those concerning safety, conduct, and interaction with beneficiaries, staff, and fellow volunteers. I agree to maintain the confidentiality of all sensitive information regarding the organization, its staff, and the individuals it serves. Any breach of this confidentiality or the Code of Conduct may result in the immediate termination of my volunteer status.</p>
+
+                <h2>3. Authorization for Emergency Medical Treatment</h2>
+                <p>In the event of an emergency, I authorize HopeDeeds staff or representatives to seek and consent to medical attention for me, if I am unable to do so myself. I understand that I am solely responsible for all costs associated with such medical care and transportation.</p>
+                
+                <p style="font-style: italic; margin-top: 20px;">By submitting this agreement, you confirm that you are at least 18 years of age or have parental/guardian consent on file.</p>
+            </div>
+            <!-- END WAIVER TEXT AREA -->
+            
+            <form action="register.html" method="GET">
+                <div class="agreement-box">
+                    <input type="checkbox" id="agree" name="agreed_in_page" required>
+                    <label for="agree">I have read and agree to the HopeDeeds Volunteer Waiver</label>
+                </div>
+                
+                <button type="submit" class="button btn-secondary" style="width: 100%; margin-top: 30px;">Acknowledge and Return to Registration</button>
+            </form>
+            
+            <a href="register.html" class="back-link">← Return to Registration Form</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2025 HopeDeeds. Commitment to Community and Trust.</p>
+        </div>
+    </footer>
+</body>
+</html>
