@@ -1,39 +1,28 @@
 const { Pool } = require("pg");
-// Connect using the DATABASE_URL environment variable
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  console.error(
-    "CRITICAL: DATABASE_URL environment variable is not set. Cannot connect to PostgreSQL."
-  );
-  process.exit(1);
-}
-
 const pool = new Pool({
-  connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
-// Ensure the volunteer table exists
+// Ensure the volunteer table exists (added password column)
 const initializeDatabase = async () => {
   try {
     const client = await pool.connect();
     const createTableQuery = `
-            CREATE TABLE IF NOT EXISTS volunteers (
-                id SERIAL PRIMARY KEY,
-                full_name VARCHAR(255) NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                phone VARCHAR(255) NOT NULL,
-                birthdate DATE NOT NULL,
-                zipcode VARCHAR(10),
-                emergency_contact VARCHAR(255),
-                waiver_agreed BOOLEAN NOT NULL,
-                waiver_agreed_at TIMESTAMP WITH TIME ZONE NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-            );
-        `;
+      CREATE TABLE IF NOT EXISTS volunteers (
+        id SERIAL PRIMARY KEY,
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(255) NOT NULL,
+        birthdate DATE NOT NULL,
+        zipcode VARCHAR(10),
+        emergency_contact VARCHAR(255),
+        waiver_agreed BOOLEAN NOT NULL,
+        waiver_agreed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        password TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `;
     await client.query(createTableQuery);
     client.release();
     console.log("PostgreSQL Volunteer table ready.");
@@ -42,17 +31,23 @@ const initializeDatabase = async () => {
   }
 };
 
-// Volunteer functions
+// Save volunteer with Base64 password
 const saveVolunteer = async (data) => {
   const sql = `
-        INSERT INTO volunteers (
-            full_name, email, phone, birthdate, zipcode, emergency_contact, 
-            waiver_agreed, waiver_agreed_at, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-        RETURNING id;
-    `;
+    INSERT INTO volunteers (
+      full_name, email, phone, birthdate, zipcode, emergency_contact, 
+      waiver_agreed, waiver_agreed_at, password, created_at
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+    RETURNING id;
+  `;
+
   const waiverAgreedBool = data.waiver_agreed === "true";
   const timestamp = new Date().toISOString();
+
+  // Base64 encode the password
+  const encodedPassword = Buffer.from(data.password, "utf-8").toString(
+    "base64"
+  );
 
   const values = [
     data.full_name,
@@ -63,25 +58,27 @@ const saveVolunteer = async (data) => {
     data.emergency_contact || null,
     waiverAgreedBool,
     timestamp,
+    encodedPassword,
   ];
 
   try {
     const res = await pool.query(sql, values);
-    const newId = res.rows[0].id;
-    console.log(`A new volunteer ID ${newId} has been registered.`);
-    return newId;
+    console.log(`New volunteer registered: ID ${res.rows[0].id}`);
+    return res.rows[0].id;
   } catch (err) {
     console.error("Database insertion error:", err.message);
     throw err;
   }
 };
 
+// Get volunteer by email
 const getVolunteerByEmail = async (email) => {
   const sql = `
-        SELECT id, full_name, email, phone, birthdate, zipcode, emergency_contact, waiver_agreed, waiver_agreed_at, created_at
-        FROM volunteers
-        WHERE email = $1;
-    `;
+    SELECT id, full_name, email, phone, birthdate, zipcode, emergency_contact,
+           waiver_agreed, waiver_agreed_at, password, created_at
+    FROM volunteers
+    WHERE email = $1;
+  `;
   try {
     const res = await pool.query(sql, [email]);
     return res.rows.length > 0 ? res.rows[0] : null;
@@ -89,6 +86,17 @@ const getVolunteerByEmail = async (email) => {
     console.error("Database retrieval error:", err.message);
     throw err;
   }
+};
+
+// Verify email/password for login
+const verifyCredentials = async (email, password) => {
+  const volunteer = await getVolunteerByEmail(email);
+  if (!volunteer) return false;
+
+  const decodedPassword = Buffer.from(volunteer.password, "base64").toString(
+    "utf-8"
+  );
+  return decodedPassword === password;
 };
 
 // --- Mock Volunteer Opportunities ---
@@ -130,11 +138,12 @@ function getAllOpportunities() {
   return volunteerOpportunities;
 }
 
-// Initialize database on import
+// Initialize DB
 initializeDatabase();
 
 module.exports = {
   saveVolunteer,
   getVolunteerByEmail,
+  verifyCredentials,
   getAllOpportunities,
 };

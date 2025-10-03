@@ -24,7 +24,7 @@
     <main>
       <div class="form-container">
         <h2>Volunteer Login</h2>
-        <form action="dashboard.html" method="GET">
+        <form action="/login" method="POST">
           <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" required />
@@ -34,7 +34,9 @@
             <input type="password" id="password" name="password" required />
           </div>
           <button type="submit" class="button btn-primary">Log In</button>
-          <p style="margin-top: 15px"><a href="#">Forgot password?</a></p>
+          <p style="margin-top: 15px">
+            <a href="#">Forgot password?</a>
+          </p>
         </form>
       </div>
     </main>

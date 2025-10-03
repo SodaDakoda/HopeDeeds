@@ -7,6 +7,7 @@ const {
   saveVolunteer,
   getVolunteerByEmail,
   getAllOpportunities,
+  verifyCredentials, // <-- NEW
 } = require("./database");
 
 const app = express();
@@ -28,6 +29,7 @@ app.post("/register", async (req, res) => {
     "phone",
     "birthdate",
     "waiver_agreed",
+    "password", // <-- now required
   ];
   const missingFields = requiredFields.filter((field) => !data[field]);
 
@@ -62,6 +64,45 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// --- Volunteer Login POST Route ---
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send(`
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+        <h2>Login Failed! (Error 400)</h2>
+        <p>Email and Password are required.</p>
+        <a href="/login.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px;">Return to Login</a>
+      </div>
+    `);
+  }
+
+  try {
+    const valid = await verifyCredentials(email, password);
+    if (valid) {
+      return res.redirect(`/dashboard.html?email=${encodeURIComponent(email)}`);
+    } else {
+      return res.status(401).send(`
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+          <h2>Login Failed! (Error 401)</h2>
+          <p>Invalid email or password.</p>
+          <a href="/login.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px;">Return to Login</a>
+        </div>
+      `);
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).send(`
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+        <h2>Server Error! (Error 500)</h2>
+        <p>There was a problem processing your login.</p>
+        <a href="/login.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #ffc107; color: black; text-decoration: none; border-radius: 5px;">Return to Login</a>
+      </div>
+    `);
+  }
+});
+
 // --- API Route to Get Volunteer Data by Email ---
 app.get("/api/volunteer/:email", async (req, res) => {
   const email = req.params.email;
@@ -74,6 +115,7 @@ app.get("/api/volunteer/:email", async (req, res) => {
     if (volunteer) {
       delete volunteer.id;
       delete volunteer.created_at;
+      delete volunteer.password; // don't expose password
       res.json(volunteer);
     } else {
       res.status(404).json({ error: "Volunteer not found." });
