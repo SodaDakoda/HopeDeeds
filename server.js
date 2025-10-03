@@ -3,7 +3,11 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
-const { saveVolunteer, getVolunteerByEmail } = require("./database");
+const {
+  saveVolunteer,
+  getVolunteerByEmail,
+  getAllOpportunities,
+} = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -80,7 +84,18 @@ app.get("/api/volunteer/:email", async (req, res) => {
   }
 });
 
-// Root fallback
+// --- API Route: Volunteer Opportunities ---
+app.get("/api/opportunities", (req, res) => {
+  const opportunities = getAllOpportunities();
+  res.json(opportunities);
+});
+
+// --- Serve Opportunities Page ---
+app.get("/opportunities.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "opportunities.html"));
+});
+
+// --- Root fallback ---
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

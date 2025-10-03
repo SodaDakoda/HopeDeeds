@@ -1,24 +1,22 @@
 const { Pool } = require("pg");
-// Connect using the DATABASE_URL environment variable you just set.
+// Connect using the DATABASE_URL environment variable
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error(
     "CRITICAL: DATABASE_URL environment variable is not set. Cannot connect to PostgreSQL."
   );
-  // Exit the process if the essential connection string is missing
   process.exit(1);
 }
 
 const pool = new Pool({
   connectionString: connectionString,
-  // Required configuration for cloud services like Neon
   ssl: {
     rejectUnauthorized: false,
   },
 });
 
-// Function to ensure the volunteer table exists
+// Ensure the volunteer table exists
 const initializeDatabase = async () => {
   try {
     const client = await pool.connect();
@@ -44,11 +42,7 @@ const initializeDatabase = async () => {
   }
 };
 
-/**
- * Inserts a new volunteer record into the database.
- * @param {object} data - Volunteer registration data.
- * @returns {Promise<number>} The ID of the inserted record.
- */
+// Volunteer functions
 const saveVolunteer = async (data) => {
   const sql = `
         INSERT INTO volunteers (
@@ -57,8 +51,6 @@ const saveVolunteer = async (data) => {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
         RETURNING id;
     `;
-
-  // We expect waiver_agreed to be 'true' or 'false' from the form submission
   const waiverAgreedBool = data.waiver_agreed === "true";
   const timestamp = new Date().toISOString();
 
@@ -80,22 +72,16 @@ const saveVolunteer = async (data) => {
     return newId;
   } catch (err) {
     console.error("Database insertion error:", err.message);
-    throw err; // Re-throw the error for server.js to catch (e.g., unique email constraint)
+    throw err;
   }
 };
 
-/**
- * Retrieves a volunteer's profile based on their email address.
- * @param {string} email - The volunteer's email address.
- * @returns {Promise<object | null>} The volunteer object or null if not found.
- */
 const getVolunteerByEmail = async (email) => {
   const sql = `
         SELECT id, full_name, email, phone, birthdate, zipcode, emergency_contact, waiver_agreed, waiver_agreed_at, created_at
         FROM volunteers
         WHERE email = $1;
     `;
-
   try {
     const res = await pool.query(sql, [email]);
     return res.rows.length > 0 ? res.rows[0] : null;
@@ -105,10 +91,50 @@ const getVolunteerByEmail = async (email) => {
   }
 };
 
-// Initialize the database connection and table on import
+// --- Mock Volunteer Opportunities ---
+const volunteerOpportunities = [
+  {
+    id: 1,
+    title: "Community Kitchen Helper",
+    description:
+      "Assist with meal preparation and serving in the community kitchen.",
+    area: "Kitchen",
+    shift_time: "Wed, 9:00 AM - 12:00 PM",
+  },
+  {
+    id: 2,
+    title: "Neighborhood Cleanup",
+    description:
+      "Help clean up parks and public spaces in the local community.",
+    area: "Outdoors",
+    shift_time: "Sat, 10:00 AM - 2:00 PM",
+  },
+  {
+    id: 3,
+    title: "Administrative Support",
+    description:
+      "Assist with office tasks including data entry and volunteer coordination.",
+    area: "Office",
+    shift_time: "Mon, 1:00 PM - 4:00 PM",
+  },
+  {
+    id: 4,
+    title: "Youth Program Mentor",
+    description: "Support and mentor children in after-school programs.",
+    area: "Education",
+    shift_time: "Tue, 3:00 PM - 6:00 PM",
+  },
+];
+
+function getAllOpportunities() {
+  return volunteerOpportunities;
+}
+
+// Initialize database on import
 initializeDatabase();
 
 module.exports = {
   saveVolunteer,
   getVolunteerByEmail,
+  getAllOpportunities,
 };

@@ -28,54 +28,8 @@
           Find the perfect way to contribute your time and skills to our cause.
         </p>
 
-        <div class="opportunities-grid">
-          <div class="opportunity-card">
-            <div>
-              <span class="area">Kitchen</span>
-              <h3>Meal Prep Assistant</h3>
-              <p>
-                Help our culinary team prepare and package meals for
-                distribution. Requires basic food safety knowledge.
-              </p>
-            </div>
-            <a href="#" class="button btn-primary">View Shifts</a>
-          </div>
-
-          <div class="opportunity-card">
-            <div>
-              <span class="area">Intake</span>
-              <h3>New Volunteer Greeter</h3>
-              <p>
-                Welcome and onboard new volunteers, ensuring they feel
-                comfortable and informed about their roles.
-              </p>
-            </div>
-            <a href="#" class="button btn-primary">View Shifts</a>
-          </div>
-
-          <div class="opportunity-card">
-            <div>
-              <span class="area">Admin/Office</span>
-              <h3>Data Entry Specialist</h3>
-              <p>
-                Assist with logging donation records and updating contact
-                information in our secure database.
-              </p>
-            </div>
-            <a href="#" class="button btn-primary">View Shifts</a>
-          </div>
-
-          <div class="opportunity-card">
-            <div>
-              <span class="area">Warehouse</span>
-              <h3>Inventory Sorter</h3>
-              <p>
-                Organize incoming donations of clothes and supplies. Lifting of
-                up to 20 lbs is required.
-              </p>
-            </div>
-            <a href="#" class="button btn-primary">View Shifts</a>
-          </div>
+        <div id="opportunitiesGrid" class="opportunities-grid">
+          <!-- Opportunity cards will be dynamically inserted here -->
         </div>
       </div>
     </main>
@@ -85,5 +39,41 @@
         <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
       </div>
     </footer>
+
+    <script>
+      async function loadOpportunities() {
+        try {
+          const response = await fetch("/api/opportunities");
+          if (!response.ok) throw new Error("Failed to fetch opportunities");
+          const opportunities = await response.json();
+
+          const grid = document.getElementById("opportunitiesGrid");
+          grid.innerHTML = "";
+
+          opportunities.forEach((op) => {
+            const card = document.createElement("div");
+            card.className = "opportunity-card";
+
+            card.innerHTML = `
+              <div>
+                <span class="area">${op.area}</span>
+                <h3>${op.title}</h3>
+                <p>${op.description}</p>
+              </div>
+              <a href="/register.html" class="button btn-primary">View Shifts</a>
+            `;
+            grid.appendChild(card);
+          });
+        } catch (err) {
+          console.error(err);
+          const grid = document.getElementById("opportunitiesGrid");
+          grid.innerHTML =
+            "<p>Failed to load opportunities. Please try again later.</p>";
+        }
+      }
+
+      // Load opportunities on page load
+      window.addEventListener("DOMContentLoaded", loadOpportunities);
+    </script>
   </body>
 </html>
