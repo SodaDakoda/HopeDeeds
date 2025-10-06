@@ -88,15 +88,33 @@ const getVolunteerByEmail = async (email) => {
   }
 };
 
-// Verify email/password for login
 const verifyCredentials = async (email, password) => {
-  const volunteer = await getVolunteerByEmail(email);
-  if (!volunteer) return false;
+  try {
+    const volunteer = await getVolunteerByEmail(email);
+    if (!volunteer || !volunteer.password) {
+      console.log("❌ No user or password found for:", email);
+      return false;
+    }
 
-  const decodedPassword = Buffer.from(volunteer.password, "base64").toString(
-    "utf-8"
-  );
-  return decodedPassword === password;
+    // Decode stored Base64 password
+    const decodedPassword = Buffer.from(volunteer.password, "base64").toString(
+      "utf-8"
+    );
+
+    const isValid = decodedPassword === password;
+
+    console.log(
+      "Login attempt for",
+      email,
+      "→",
+      isValid ? "✅ success" : "❌ fail"
+    );
+
+    return isValid;
+  } catch (err) {
+    console.error("verifyCredentials error:", err);
+    return false;
+  }
 };
 
 // --- Mock Volunteer Opportunities ---
