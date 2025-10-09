@@ -130,10 +130,10 @@ app.get("/api/volunteer/:email", async (req, res) => {
 });
 
 // ---------------------- ORGANIZATION ROUTES ----------------------
-app.get("/org-login.html", (req, res) =>
+app.get("/organization_register.html", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "org-login.html"))
 );
-app.get("/org-register.html", (req, res) =>
+app.get("/organization_register.html", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "org-register.html"))
 );
 
@@ -162,7 +162,9 @@ app.post("/org/register", async (req, res) => {
       data.contact_person || "",
       Buffer.from(data.password).toString("base64"),
     ]);
-    res.redirect(`/org-dashboard.html?email=${encodeURIComponent(data.email)}`);
+    res.redirect(
+      `/organization_dashboard.html?email=${encodeURIComponent(data.email)}`
+    );
   } catch (err) {
     console.error("Organization registration error:", err);
     if (err.code === "23505")
@@ -188,7 +190,7 @@ app.post("/org/login", async (req, res) => {
     );
     if (decoded === password)
       return res.redirect(
-        `/org-dashboard.html?email=${encodeURIComponent(email)}`
+        `/organization_dashboard.html?email=${encodeURIComponent(email)}`
       );
     res.status(401).send("Invalid email or password.");
   } catch (err) {
