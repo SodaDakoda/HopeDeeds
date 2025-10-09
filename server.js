@@ -3,6 +3,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const { Pool } = require("pg");
+const moment = require("moment");
+const helmet = require("helmet");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -22,6 +24,28 @@ pool.on("error", (err) => {
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// ---------------------- CONTENT SECURITY POLICY ----------------------
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "https://cdn.tailwindcss.com",
+        "https://cdnjs.cloudflare.com",
+      ],
+      styleSrc: [
+        "'self'",
+        "https://cdn.tailwindcss.com",
+        "https://cdnjs.cloudflare.com",
+      ],
+      imgSrc: ["'self'", "data:", "https://hopedeeds.onrender.com"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      connectSrc: ["'self'"],
+    },
+  })
+);
 
 // ---------------------- VOLUNTEER ROUTES ----------------------
 app.post("/register", async (req, res) => {
@@ -75,13 +99,11 @@ app.post("/login", async (req, res) => {
       [email]
     );
     if (!result.rows.length) return res.status(401).send("Invalid login.");
-
     const decoded = Buffer.from(result.rows[0].password, "base64").toString(
       "utf-8"
     );
     if (decoded === password)
       return res.redirect(`/dashboard.html?email=${encodeURIComponent(email)}`);
-
     res.status(401).send("Invalid email or password.");
   } catch (err) {
     console.error("Volunteer login error:", err);
@@ -108,6 +130,13 @@ app.get("/api/volunteer/:email", async (req, res) => {
 });
 
 // ---------------------- ORGANIZATION ROUTES ----------------------
+app.get("/org-login.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "org-login.html"))
+);
+app.get("/org-register.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "org-register.html"))
+);
+
 app.post("/org/register", async (req, res) => {
   const data = req.body;
   const required = ["org_name", "email", "password"];
@@ -154,7 +183,6 @@ app.post("/org/login", async (req, res) => {
     );
     if (!result.rows.length)
       return res.status(401).send("Invalid organization login.");
-
     const decoded = Buffer.from(result.rows[0].password, "base64").toString(
       "utf-8"
     );
@@ -162,7 +190,6 @@ app.post("/org/login", async (req, res) => {
       return res.redirect(
         `/org-dashboard.html?email=${encodeURIComponent(email)}`
       );
-
     res.status(401).send("Invalid email or password.");
   } catch (err) {
     console.error("Organization login error:", err);
@@ -188,8 +215,6 @@ app.get("/api/organization/:email", async (req, res) => {
 });
 
 // ---------------------- OPPORTUNITY ROUTES ----------------------
-
-// Get all upcoming opportunities
 app.get("/api/opportunities", async (req, res) => {
   try {
     const { date, organization } = req.query;
@@ -216,71 +241,57 @@ app.get("/api/opportunities", async (req, res) => {
   }
 });
 
-// Create a new opportunity for a specific org
-app.post("/api/org/:orgId/opportunities", async (req, res) => {
-  const orgId = req.params.orgId;
-  const { title, description, start_date, time, duration } = req.body;
-
-  if (!title || !description || !start_date || !time || !duration) {
-    return res.status(400).send("Missing required fields.");
-  }
+app.post("/api/opportunities", async (req, res) => {
+  const data = req.body;
+  const required = [
+    "org_id",
+    "title",
+    "description",
+    "start_date",
+    "time",
+    "duration",
+  ];
+  const missing = required.filter((f) => !data[f]);
+  if (missing.length)
+    return res.status(400).send(`Missing fields: ${missing.join(", ")}`);
 
   try {
     const insertQuery = `
       INSERT INTO opportunities
-      (org_id, title, description, start_date, time, duration)
-      VALUES ($1,$2,$3,$4,$5,$6)
+      (org_id, title, description, start_date, time, duration, status)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
       RETURNING *
     `;
     const result = await pool.query(insertQuery, [
-      orgId,
-      title,
-      description,
-      start_date,
-      time,
-      duration,
+      data.org_id,
+      data.title,
+      data.description,
+      data.start_date,
+      data.time,
+      data.duration,
+      data.status || "active",
     ]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error adding opportunity:", err);
-    res.status(500).send("Failed to add opportunity");
+    console.error("Error creating opportunity:", err);
+    res.status(500).send("Failed to create opportunity");
   }
 });
 
-// Delete an opportunity
 app.delete("/api/opportunities/:id", async (req, res) => {
-  const oppId = req.params.id;
-  const { org_id } = req.body;
-  if (!org_id) return res.status(400).send("Missing org_id");
-
+  const id = req.params.id;
   try {
-    const check = await pool.query(
-      "SELECT * FROM opportunities WHERE id=$1 AND org_id=$2",
-      [oppId, org_id]
-    );
-    if (!check.rows.length)
-      return res.status(403).send("Unauthorized to delete this opportunity");
-
-    await pool.query("DELETE FROM opportunities WHERE id=$1", [oppId]);
-    res.json({ success: true });
+    await pool.query("DELETE FROM opportunities WHERE id = $1", [id]);
+    res.status(200).json({ success: true });
   } catch (err) {
     console.error("Error deleting opportunity:", err);
-    res.status(500).send("Failed to delete opportunity");
+    res.status(500).json({ error: "Failed to delete opportunity" });
   }
 });
 
 // ---------------------- DEFAULT ROUTES ----------------------
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
-);
-app.get("/opportunities.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "opportunities.html"))
-);
-app.get("/dashboard.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"))
-);
-app.get("/org-dashboard.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "org-dashboard.html"))
 );
 
 // ---------------------- START SERVER ----------------------
