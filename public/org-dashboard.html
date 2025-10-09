@@ -1,89 +1,163 @@
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const email = urlParams.get("email");
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Dashboard | HopeDeeds</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <div class="logo">Hope<span>Deeds</span></div>
+          <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="opportunities.html">Opportunities</a></li>
+            <li><a href="org-dashboard.html" class="active">Dashboard</a></li>
+            <li>
+              <a href="org-login.html" class="btn btn-secondary">Log Out</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
 
-    const welcomeMessage = document.getElementById("welcome-message");
-    const orgNameEl = document.getElementById("data-org-name");
-    const emailEl = document.getElementById("data-email");
-    const phoneEl = document.getElementById("data-phone");
-    const addressEl = document.getElementById("data-address");
-    const opportunitiesList = document.getElementById("org-opportunities-list");
-    const dataOpportunitiesEl = document.getElementById("data-opportunities");
+    <main>
+      <div class="container dashboard-layout">
+        <div class="main-dashboard-area">
+          <h1 id="welcome-message">Welcome Back, Organization Name!</h1>
 
-    if (!email) {
-      welcomeMessage.textContent = "Welcome! Please log in to view your dashboard.";
-      return;
-    }
+          <section class="dashboard-section profile-card">
+            <h2><i class="fas fa-building"></i> Profile Information</h2>
+            <table class="profile-table">
+              <tr>
+                <th>Organization Name</th>
+                <td id="data-org-name">N/A</td>
+              </tr>
+              <tr>
+                <th>Email</th>
+                <td id="data-email">N/A</td>
+              </tr>
+              <tr>
+                <th>Phone</th>
+                <td id="data-phone">N/A</td>
+              </tr>
+              <tr>
+                <th>Address</th>
+                <td id="data-address">N/A</td>
+              </tr>
+              <tr>
+                <th>Total Opportunities</th>
+                <td id="data-opportunities">0</td>
+              </tr>
+            </table>
+            <div class="action-buttons">
+              <button class="btn btn-primary">Update Profile</button>
+            </div>
+          </section>
 
-    // --------------------- Fetch Organization Data ---------------------
-    const fetchOrgData = async () => {
-      try {
-        const res = await fetch(`/api/organization/${encodeURIComponent(email)}`);
-        if (!res.ok) throw new Error("Organization not found");
+          <section class="dashboard-section">
+            <h2><i class="fas fa-list-check"></i> Your Opportunities</h2>
+            <ul class="shift-list" id="org-opportunities-list">
+              <li>
+                <span>Park Cleanup Drive - Oct 25, 2025 (8:00 AM)</span>
+                <button class="btn btn-secondary" style="padding: 8px 15px">
+                  View Volunteers
+                </button>
+              </li>
+              <li>
+                <span>Food Bank Sorting - Nov 1, 2025 (2:00 PM)</span>
+                <button class="btn btn-secondary" style="padding: 8px 15px">
+                  View Volunteers
+                </button>
+              </li>
+              <li id="no-opportunities" style="display: none">
+                No active opportunities found.
+              </li>
+            </ul>
+          </section>
+        </div>
 
-        const org = await res.json();
+        <div class="sidebar-dashboard-area">
+          <section class="dashboard-section">
+            <h2><i class="fas fa-plus-circle"></i> Add New Opportunity</h2>
+            <form id="new-opportunity-form">
+              <div class="form-group">
+                <label for="opportunity-title">Title</label>
+                <input
+                  type="text"
+                  id="opportunity-title"
+                  placeholder="e.g., Park Cleanup"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="opportunity-date">Date</label>
+                <input type="date" id="opportunity-date" required />
+              </div>
+              <div class="form-group">
+                <label for="opportunity-time">Time</label>
+                <input type="time" id="opportunity-time" required />
+              </div>
+              <div class="form-group">
+                <label for="opportunity-description">Description</label>
+                <textarea
+                  id="opportunity-description"
+                  placeholder="Details about the task and requirements"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Post Opportunity
+              </button>
+            </form>
+          </section>
 
-        // Update profile info
-        welcomeMessage.textContent = `Welcome Back, ${org.org_name.split(" ")[0]}!`;
-        orgNameEl.textContent = org.org_name || "N/A";
-        emailEl.textContent = org.email || "N/A";
-        phoneEl.textContent = org.phone || "N/A";
-        addressEl.textContent = org.address || "N/A";
+          <section class="dashboard-section">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="action-buttons">
+              <a href="opportunities.html" class="btn btn-secondary"
+                >View All Opportunities</a
+              >
+              <button class="btn btn-primary">Download Volunteer List</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 
-        // Clear and show default message for opportunities until API exists
-        opportunitiesList.innerHTML = "<li>No opportunities posted yet.</li>";
-        dataOpportunitiesEl.textContent = 0;
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-section">
+          <h4>HopeDeeds</h4>
+          <p>&copy; 2025 Volunteer Management Platform.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <p>Email: info@hopedeeds.org</p>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <ul class="social-links">
+            <li>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </footer>
 
-        // If you later add `/api/org/:email/opportunities`, uncomment:
-
-        const oppRes = await fetch(`/api/org/${encodeURIComponent(email)}/opportunities`);
-        if (oppRes.ok) {
-          const opportunities = await oppRes.json();
-          opportunitiesList.innerHTML = "";
-          if (opportunities.length > 0) {
-            opportunities.forEach((opp) => {
-              const li = document.createElement("li");
-              li.textContent = `${opp.title} - ${opp.date} (${opp.time})`;
-              opportunitiesList.appendChild(li);
-            });
-            dataOpportunitiesEl.textContent = opportunities.length;
-          }
-        }
-        */
-      } catch (err) {
-        console.error("Error loading organization:", err);
-        welcomeMessage.textContent = "Error loading dashboard.";
-      }
-    };
-
-    fetchOrgData();
-
-    // --------------------- Handle New Opportunity Submission ---------------------
-    const form = document.getElementById("new-opportunity-form");
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const title = document.getElementById("opportunity-title").value.trim();
-        const date = document.getElementById("opportunity-date").value;
-        const time = document.getElementById("opportunity-time").value;
-        const description = document.getElementById("opportunity-description").value.trim();
-
-        if (!title || !date || !time || !description) {
-          alert("Please fill in all fields.");
-          return;
-        }
-
-        // Temporarily alert until API exists
-        alert("Opportunity added! (API endpoint not yet implemented.)");
-
-        // Clear form
-        form.reset();
-
-        // Refresh dashboard
-        fetchOrgData();
-      });
-    }
-  });
-</script>
+    <script src="org-dashboard.js"></script>
+  </body>
+</html>
