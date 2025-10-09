@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organization Dashboard | HopeDeeds</title>
+    <!-- Load Tailwind CSS for utilities and modern styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load custom CSS file (now using the new color scheme) -->
     <link rel="stylesheet" href="styles.css" />
+    <!-- Font Awesome for icons, matching the volunteer dashboard -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -20,7 +24,9 @@
             <li><a href="opportunities.html">Opportunities</a></li>
             <li><a href="org-dashboard.html" class="active">Dashboard</a></li>
             <li>
-              <a href="org-login.html" class="btn btn-secondary">Log Out</a>
+              <a href="org-login.html" class="btn btn-secondary" id="logout-btn"
+                >Log Out</a
+              >
             </li>
           </ul>
         </nav>
@@ -29,12 +35,18 @@
 
     <main>
       <div class="container dashboard-layout">
+        <!-- Left Column: Profile and Opportunities List (main area) -->
         <div class="main-dashboard-area">
-          <h1 id="welcome-message">Welcome Back, Organization Name!</h1>
+          <h1 id="welcome-message">Loading Dashboard...</h1>
 
+          <!-- Profile Card - Organization Details -->
           <section class="dashboard-section profile-card">
             <h2><i class="fas fa-building"></i> Profile Information</h2>
             <table class="profile-table">
+              <tr>
+                <th>Organization ID</th>
+                <td id="data-org-id">Loading...</td>
+              </tr>
               <tr>
                 <th>Organization Name</th>
                 <td id="data-org-name">N/A</td>
@@ -57,42 +69,43 @@
               </tr>
             </table>
             <div class="action-buttons">
-              <button class="btn btn-primary">Update Profile</button>
+              <button class="btn btn-primary button">Update Profile</button>
             </div>
           </section>
 
+          <!-- Opportunities List - Matching the shift-list style -->
           <section class="dashboard-section">
-            <h2><i class="fas fa-list-check"></i> Your Opportunities</h2>
+            <h2><i class="fas fa-list-check"></i> Your Active Opportunities</h2>
             <ul class="shift-list" id="org-opportunities-list">
-              <li>
-                <span>Park Cleanup Drive - Oct 25, 2025 (8:00 AM)</span>
-                <button class="btn btn-secondary" style="padding: 8px 15px">
-                  View Volunteers
-                </button>
-              </li>
-              <li>
-                <span>Food Bank Sorting - Nov 1, 2025 (2:00 PM)</span>
-                <button class="btn btn-secondary" style="padding: 8px 15px">
-                  View Volunteers
-                </button>
-              </li>
-              <li id="no-opportunities" style="display: none">
-                No active opportunities found.
-              </li>
+              <li>Loading active opportunities...</li>
             </ul>
+            <div
+              id="no-opportunities"
+              style="
+                display: none;
+                text-align: center;
+                padding: 1rem;
+                color: #6b7280;
+              "
+            >
+              <i class="fas fa-box-open"></i> No active opportunities posted
+              yet.
+            </div>
           </section>
         </div>
 
+        <!-- Right Column: Add New Opportunity Form and Quick Actions (sidebar area) -->
         <div class="sidebar-dashboard-area">
+          <!-- New Opportunity Form -->
           <section class="dashboard-section">
-            <h2><i class="fas fa-plus-circle"></i> Add New Opportunity</h2>
+            <h2><i class="fas fa-plus-circle"></i> Post New Opportunity</h2>
             <form id="new-opportunity-form">
               <div class="form-group">
                 <label for="opportunity-title">Title</label>
                 <input
                   type="text"
                   id="opportunity-title"
-                  placeholder="e.g., Park Cleanup"
+                  placeholder="e.g., Park Cleanup Crew"
                   required
                 />
               </div>
@@ -105,32 +118,46 @@
                 <input type="time" id="opportunity-time" required />
               </div>
               <div class="form-group">
+                <label for="opportunity-duration">Duration (Hours)</label>
+                <input
+                  type="number"
+                  id="opportunity-duration"
+                  placeholder="e.g., 3.5"
+                  min="0.5"
+                  step="0.5"
+                  required
+                />
+              </div>
+              <div class="form-group">
                 <label for="opportunity-description">Description</label>
                 <textarea
                   id="opportunity-description"
-                  placeholder="Details about the task and requirements"
+                  placeholder="Details about the task, requirements, and location."
                   required
                 ></textarea>
               </div>
-              <button type="submit" class="btn btn-primary" style="width: 100%">
-                Post Opportunity
+              <!-- Added 'button' class and used w-full for 100% width, removing inline style -->
+              <button type="submit" class="btn btn-primary button w-full">
+                <span id="form-submit-text">Post Opportunity</span>
+                <i
+                  id="form-spinner"
+                  class="fas fa-spinner fa-spin"
+                  style="display: none"
+                ></i>
               </button>
             </form>
           </section>
 
+          <!-- Notifications (Repurposed as Status) -->
           <section class="dashboard-section">
-            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <div class="action-buttons">
-              <a href="opportunities.html" class="btn btn-secondary"
-                >View All Opportunities</a
-              >
-              <button class="btn btn-primary">Download Volunteer List</button>
-            </div>
+            <h2><i class="fas fa-bell"></i> Status & Info</h2>
+            <p id="status-message">Connecting to database...</p>
           </section>
         </div>
       </div>
     </main>
 
+    <!-- Using the same footer structure -->
     <footer>
       <div class="container footer-content">
         <div class="footer-section">
@@ -158,6 +185,7 @@
       </div>
     </footer>
 
-    <script src="org-dashboard.js"></script>
+    <!-- Load external JavaScript module -->
+    <script type="module" src="organization_dashboard.js"></script>
   </body>
 </html>
