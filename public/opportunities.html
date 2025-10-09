@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Opportunities - HopeDeeds</title>
+    <title>Volunteer Opportunities | HopeDeeds</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -13,9 +13,11 @@
           <div class="logo">Hope<span>Deeds</span></div>
           <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="opportunities.html">Opportunities</a></li>
-            <li><a href="login.html">Login</a></li>
-            <li><a href="#">Contact</a></li>
+            <li>
+              <a href="opportunities.html" class="active">Opportunities</a>
+            </li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="login.html" class="btn btn-secondary">Log Out</a></li>
           </ul>
         </nav>
       </div>
@@ -24,12 +26,9 @@
     <main>
       <div class="container">
         <h1>Current Volunteer Opportunities</h1>
-        <p>
-          Find the perfect way to contribute your time and skills to our cause.
-        </p>
-
         <div id="opportunitiesGrid" class="opportunities-grid">
           <!-- Opportunity cards will be dynamically inserted here -->
+          <p id="loading" class="text-center">Loading opportunities...</p>
         </div>
       </div>
     </main>
@@ -42,37 +41,37 @@
 
     <script>
       async function loadOpportunities() {
+        const grid = document.getElementById("opportunitiesGrid");
         try {
-          const response = await fetch("/api/opportunities");
-          if (!response.ok) throw new Error("Failed to fetch opportunities");
-          const opportunities = await response.json();
+          const res = await fetch("/api/opportunities");
+          if (!res.ok) throw new Error("Failed to fetch opportunities");
+          const opportunities = await res.json();
 
-          const grid = document.getElementById("opportunitiesGrid");
           grid.innerHTML = "";
+
+          if (!opportunities.length) {
+            grid.innerHTML = "<p>No opportunities available at this time.</p>";
+            return;
+          }
 
           opportunities.forEach((op) => {
             const card = document.createElement("div");
             card.className = "opportunity-card";
-
             card.innerHTML = `
-              <div>
-                <span class="area">${op.area}</span>
-                <h3>${op.title}</h3>
-                <p>${op.description}</p>
-              </div>
-              <a href="/register.html" class="button btn-primary">View Shifts</a>
-            `;
+            <h3>${op.title}</h3>
+            <p><strong>Date:</strong> ${op.start_date} | <strong>Time:</strong> ${op.time}</p>
+            <p>${op.description}</p>
+            <a href="/register.html" class="btn btn-primary">View Shifts</a>
+          `;
             grid.appendChild(card);
           });
         } catch (err) {
           console.error(err);
-          const grid = document.getElementById("opportunitiesGrid");
           grid.innerHTML =
             "<p>Failed to load opportunities. Please try again later.</p>";
         }
       }
 
-      // Load opportunities on page load
       window.addEventListener("DOMContentLoaded", loadOpportunities);
     </script>
   </body>
