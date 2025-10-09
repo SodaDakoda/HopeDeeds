@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volunteer Opportunities | HopeDeeds</title>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
   </head>
   <body>
     <header>
@@ -25,54 +29,108 @@
 
     <main>
       <div class="container">
-        <h1>Current Volunteer Opportunities</h1>
-        <div id="opportunitiesGrid" class="opportunities-grid">
-          <!-- Opportunity cards will be dynamically inserted here -->
-          <p id="loading" class="text-center">Loading opportunities...</p>
-        </div>
+        <h1><i class="fas fa-search"></i> Find Your Next Opportunity</h1>
+
+        <!-- Filter Section -->
+        <section
+          class="dashboard-section"
+          style="border-left: 5px solid var(--success)"
+        >
+          <h2>Filter Opportunities</h2>
+          <form id="opportunity-filters">
+            <div class="filter-controls">
+              <div class="form-group">
+                <label for="filter-date">Date</label>
+                <input type="date" id="filter-date" />
+              </div>
+              <div class="form-group">
+                <label for="filter-organization">Organization (Email/ID)</label>
+                <input
+                  type="text"
+                  id="filter-organization"
+                  placeholder="e.g., org_a@test.com"
+                />
+              </div>
+              <div class="form-group">
+                <label for="filter-type">Type (Category)</label>
+                <select id="filter-type">
+                  <option value="">All Types</option>
+                  <option value="Cleanup">Cleanup</option>
+                  <option value="Food Bank">Food Bank</option>
+                  <option value="Tutoring">Tutoring</option>
+                  <!-- Add more types/categories as needed -->
+                </select>
+              </div>
+              <div class="form-group flex items-end">
+                <button
+                  type="submit"
+                  class="btn btn-primary button w-full"
+                  style="padding: 14px 25px"
+                >
+                  <i class="fas fa-filter"></i> Apply Filters
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Opportunities Grid -->
+        <section class="dashboard-section mt-5">
+          <h2>
+            Upcoming Opportunities (<span id="opportunity-count">0</span>)
+          </h2>
+          <div id="opportunities-list" class="opportunities-grid">
+            <p
+              id="loading-message"
+              class="col-span-full text-center text-gray-500"
+            >
+              <i class="fas fa-circle-notch fa-spin"></i> Loading
+              opportunities...
+            </p>
+          </div>
+          <div
+            id="no-results"
+            class="col-span-full text-center text-gray-500"
+            style="display: none"
+          >
+            <i class="fas fa-exclamation-triangle"></i> No opportunities match
+            your filters.
+          </div>
+        </section>
+        <p id="status-message" class="text-center text-sm mt-4 text-gray-500">
+          Ready.
+        </p>
       </div>
     </main>
 
     <footer>
       <div class="container footer-content">
-        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
+        <div class="footer-section">
+          <h4>HopeDeeds</h4>
+          <p>&copy; 2025 Volunteer Management Platform.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <p>Email: info@hopedeeds.org</p>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <ul class="social-links">
+            <li>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
       </div>
     </footer>
 
-    <script>
-      async function loadOpportunities() {
-        const grid = document.getElementById("opportunitiesGrid");
-        try {
-          const res = await fetch("/api/opportunities");
-          if (!res.ok) throw new Error("Failed to fetch opportunities");
-          const opportunities = await res.json();
-
-          grid.innerHTML = "";
-
-          if (!opportunities.length) {
-            grid.innerHTML = "<p>No opportunities available at this time.</p>";
-            return;
-          }
-
-          opportunities.forEach((op) => {
-            const card = document.createElement("div");
-            card.className = "opportunity-card";
-            card.innerHTML = `
-            <h3>${op.title}</h3>
-            <p><strong>Date:</strong> ${op.start_date} | <strong>Time:</strong> ${op.time}</p>
-            <p>${op.description}</p>
-            <a href="/register.html" class="btn btn-primary">View Shifts</a>
-          `;
-            grid.appendChild(card);
-          });
-        } catch (err) {
-          console.error(err);
-          grid.innerHTML =
-            "<p>Failed to load opportunities. Please try again later.</p>";
-        }
-      }
-
-      window.addEventListener("DOMContentLoaded", loadOpportunities);
-    </script>
+    <!-- Integrated volunteer JS logic -->
+    <script type="module" src="opportunities.js"></script>
   </body>
 </html>

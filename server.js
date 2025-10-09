@@ -192,15 +192,118 @@ app.get("/api/organization/:email", async (req, res) => {
 });
 
 // ---------------------- OPPORTUNITY ROUTES ----------------------
+
+// Get all upcoming opportunities with optional query filters
 app.get("/api/opportunities", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM opportunities WHERE start_date >= CURRENT_DATE AND status = 'active' ORDER BY start_date ASC, time ASC"
-    );
+    const { date, organization } = req.query;
+    let query =
+      "SELECT * FROM opportunities WHERE start_date >= CURRENT_DATE AND status='active'";
+    const params = [];
+
+    if (date) {
+      params.push(date);
+      query += ` AND start_date = $${params.length}`;
+    }
+    if (organization) {
+      params.push(organization);
+      query += ` AND org_id = $${params.length}`;
+    }
+
+    query += " ORDER BY start_date ASC, time ASC";
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Failed to fetch volunteer opportunities:", err);
     res.status(500).json({ error: "Failed to fetch volunteer opportunities" });
+  }
+});
+
+// Create a new opportunity (with optional recurrence)
+app.post("/api/opportunities", async (req, res) => {
+  const data = req.body;
+  const required = [
+    "org_id",
+    "title",
+    "description",
+    "start_date",
+    "time",
+    "duration",
+  ];
+  const missing = required.filter((f) => !data[f]);
+  if (missing.length)
+    return res.status(400).send(`Missing fields: ${missing.join(", ")}`);
+
+  try {
+    // Insert the main opportunity
+    const insertQuery = `
+      INSERT INTO opportunities
+      (org_id, title, description, start_date, time, duration, recurrence_rule)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING *
+    `;
+    const result = await pool.query(insertQuery, [
+      data.org_id,
+      data.title,
+      data.description,
+      data.start_date,
+      data.time,
+      data.duration,
+      data.recurrence_rule ? JSON.stringify(data.recurrence_rule) : null,
+    ]);
+    const parentOpp = result.rows[0];
+
+    // Handle recurring events if a recurrence_rule is provided
+    if (data.recurrence_rule) {
+      const { type, days, count } = data.recurrence_rule; // e.g., {type:'weekly', days:['mon','wed'], count:5}
+      const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
+      let instances = [];
+      let currentDate = moment(data.start_date);
+
+      let instancesCreated = 0;
+      while (instancesCreated < (count || 1)) {
+        if (instancesCreated > 0) {
+          // Skip the parent date
+          if (
+            type === "weekly" &&
+            days.includes(currentDate.format("ddd").toLowerCase().slice(0, 3))
+          ) {
+            instances.push(currentDate.format("YYYY-MM-DD"));
+          } else if (type === "daily") {
+            instances.push(currentDate.format("YYYY-MM-DD"));
+          } else if (type === "monthly") {
+            instances.push(currentDate.format("YYYY-MM-DD"));
+          }
+        }
+        currentDate.add(1, "days");
+        instancesCreated++;
+      }
+
+      // Insert recurring instances
+      for (const date of instances) {
+        await pool.query(
+          `INSERT INTO opportunities
+           (org_id, title, description, start_date, time, duration, parent_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [
+            data.org_id,
+            data.title,
+            data.description,
+            date,
+            data.time,
+            data.duration,
+            parentOpp.id,
+          ]
+        );
+      }
+    }
+
+    res.status(201).json(parentOpp);
+  } catch (err) {
+    console.error("Error creating opportunity:", err);
+    res.status(500).send("Failed to create opportunity");
   }
 });
 
