@@ -3,7 +3,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const { Pool } = require("pg");
-const moment = require("moment");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -76,11 +75,13 @@ app.post("/login", async (req, res) => {
       [email]
     );
     if (!result.rows.length) return res.status(401).send("Invalid login.");
+
     const decoded = Buffer.from(result.rows[0].password, "base64").toString(
       "utf-8"
     );
     if (decoded === password)
       return res.redirect(`/dashboard.html?email=${encodeURIComponent(email)}`);
+
     res.status(401).send("Invalid email or password.");
   } catch (err) {
     console.error("Volunteer login error:", err);
@@ -107,13 +108,6 @@ app.get("/api/volunteer/:email", async (req, res) => {
 });
 
 // ---------------------- ORGANIZATION ROUTES ----------------------
-app.get("/org-login.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "org-login.html"))
-);
-app.get("/org-register.html", (req, res) =>
-  res.sendFile(path.join(__dirname, "public", "org-register.html"))
-);
-
 app.post("/org/register", async (req, res) => {
   const data = req.body;
   const required = ["org_name", "email", "password"];
@@ -160,6 +154,7 @@ app.post("/org/login", async (req, res) => {
     );
     if (!result.rows.length)
       return res.status(401).send("Invalid organization login.");
+
     const decoded = Buffer.from(result.rows[0].password, "base64").toString(
       "utf-8"
     );
@@ -167,6 +162,7 @@ app.post("/org/login", async (req, res) => {
       return res.redirect(
         `/org-dashboard.html?email=${encodeURIComponent(email)}`
       );
+
     res.status(401).send("Invalid email or password.");
   } catch (err) {
     console.error("Organization login error:", err);
@@ -193,7 +189,7 @@ app.get("/api/organization/:email", async (req, res) => {
 
 // ---------------------- OPPORTUNITY ROUTES ----------------------
 
-// Get all upcoming opportunities with optional query filters
+// Get all upcoming opportunities
 app.get("/api/opportunities", async (req, res) => {
   try {
     const { date, organization } = req.query;
@@ -220,96 +216,71 @@ app.get("/api/opportunities", async (req, res) => {
   }
 });
 
-// Create a new opportunity (with optional recurrence)
-app.post("/api/opportunities", async (req, res) => {
-  const data = req.body;
-  const required = [
-    "org_id",
-    "title",
-    "description",
-    "start_date",
-    "time",
-    "duration",
-  ];
-  const missing = required.filter((f) => !data[f]);
-  if (missing.length)
-    return res.status(400).send(`Missing fields: ${missing.join(", ")}`);
+// Create a new opportunity for a specific org
+app.post("/api/org/:orgId/opportunities", async (req, res) => {
+  const orgId = req.params.orgId;
+  const { title, description, start_date, time, duration } = req.body;
+
+  if (!title || !description || !start_date || !time || !duration) {
+    return res.status(400).send("Missing required fields.");
+  }
 
   try {
-    // Insert the main opportunity
     const insertQuery = `
       INSERT INTO opportunities
-      (org_id, title, description, start_date, time, duration, recurrence_rule)
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      (org_id, title, description, start_date, time, duration)
+      VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING *
     `;
     const result = await pool.query(insertQuery, [
-      data.org_id,
-      data.title,
-      data.description,
-      data.start_date,
-      data.time,
-      data.duration,
-      data.recurrence_rule ? JSON.stringify(data.recurrence_rule) : null,
+      orgId,
+      title,
+      description,
+      start_date,
+      time,
+      duration,
     ]);
-    const parentOpp = result.rows[0];
-
-    // Handle recurring events if a recurrence_rule is provided
-    if (data.recurrence_rule) {
-      const { type, days, count } = data.recurrence_rule; // e.g., {type:'weekly', days:['mon','wed'], count:5}
-      const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-
-      let instances = [];
-      let currentDate = moment(data.start_date);
-
-      let instancesCreated = 0;
-      while (instancesCreated < (count || 1)) {
-        if (instancesCreated > 0) {
-          // Skip the parent date
-          if (
-            type === "weekly" &&
-            days.includes(currentDate.format("ddd").toLowerCase().slice(0, 3))
-          ) {
-            instances.push(currentDate.format("YYYY-MM-DD"));
-          } else if (type === "daily") {
-            instances.push(currentDate.format("YYYY-MM-DD"));
-          } else if (type === "monthly") {
-            instances.push(currentDate.format("YYYY-MM-DD"));
-          }
-        }
-        currentDate.add(1, "days");
-        instancesCreated++;
-      }
-
-      // Insert recurring instances
-      for (const date of instances) {
-        await pool.query(
-          `INSERT INTO opportunities
-           (org_id, title, description, start_date, time, duration, parent_id)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [
-            data.org_id,
-            data.title,
-            data.description,
-            date,
-            data.time,
-            data.duration,
-            parentOpp.id,
-          ]
-        );
-      }
-    }
-
-    res.status(201).json(parentOpp);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error creating opportunity:", err);
-    res.status(500).send("Failed to create opportunity");
+    console.error("Error adding opportunity:", err);
+    res.status(500).send("Failed to add opportunity");
+  }
+});
+
+// Delete an opportunity
+app.delete("/api/opportunities/:id", async (req, res) => {
+  const oppId = req.params.id;
+  const { org_id } = req.body;
+  if (!org_id) return res.status(400).send("Missing org_id");
+
+  try {
+    const check = await pool.query(
+      "SELECT * FROM opportunities WHERE id=$1 AND org_id=$2",
+      [oppId, org_id]
+    );
+    if (!check.rows.length)
+      return res.status(403).send("Unauthorized to delete this opportunity");
+
+    await pool.query("DELETE FROM opportunities WHERE id=$1", [oppId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting opportunity:", err);
+    res.status(500).send("Failed to delete opportunity");
   }
 });
 
 // ---------------------- DEFAULT ROUTES ----------------------
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
+);
+app.get("/opportunities.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "opportunities.html"))
+);
+app.get("/dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"))
+);
+app.get("/org-dashboard.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "org-dashboard.html"))
 );
 
 // ---------------------- START SERVER ----------------------

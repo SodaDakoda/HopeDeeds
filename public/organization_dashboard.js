@@ -1,119 +1,140 @@
 // organization_dashboard.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  onSnapshot,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// ---------- Helpers ----------
+const orgOpportunitiesList = document.getElementById("org-opportunities-list");
+const orgOpportunityCount = document.getElementById("data-opportunities");
+const statusMessage = document.getElementById("status-message");
 
-// Helpers
-const getOpportunitiesCollectionRef = () =>
-  collection(db, "organizations_opportunities");
-
-// ---------- Load Org Profile ----------
+// ---------- Load Organization Profile ----------
 async function loadOrganizationProfile(email) {
   try {
     const res = await fetch(`/api/organization/${encodeURIComponent(email)}`);
+    if (!res.ok) throw new Error("Failed to fetch organization");
     const org = await res.json();
 
-    document.getElementById("data-org-name").textContent =
-      org.org_name || "N/A";
-    document.getElementById("data-email").textContent = org.email || "N/A";
+    document.getElementById("data-org-id").textContent = org.id;
+    document.getElementById("data-org-name").textContent = org.org_name;
+    document.getElementById("data-email").textContent = org.email;
     document.getElementById("data-phone").textContent = org.phone || "N/A";
     document.getElementById("data-address").textContent = org.address || "N/A";
     document.getElementById(
       "welcome-message"
     ).textContent = `Welcome, ${org.org_name}!`;
 
+    window.currentOrgId = org.id;
+
     return org;
   } catch (err) {
-    console.error("Failed to load org:", err);
+    console.error(err);
     document.getElementById("welcome-message").textContent =
       "Error loading profile.";
   }
 }
 
-// ---------- Load Opportunities (Real-Time from Firebase) ----------
-function loadOpportunitiesRealtime() {
-  const listEl = document.getElementById("org-opportunities-list");
-  const totalEl = document.getElementById("data-opportunities");
+// ---------- Load Opportunities ----------
+async function loadOpportunities() {
+  try {
+    statusMessage.textContent = "Loading opportunities...";
+    const res = await fetch("/api/opportunities");
+    if (!res.ok) throw new Error("Failed to fetch opportunities");
 
-  onSnapshot(getOpportunitiesCollectionRef(), (snapshot) => {
-    listEl.innerHTML = "";
-    let count = 0;
+    const allOpportunities = await res.json();
+    const orgOpportunities = allOpportunities.filter(
+      (o) => o.org_id.toString() === window.currentOrgId.toString()
+    );
 
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
+    orgOpportunitiesList.innerHTML = "";
+    orgOpportunityCount.textContent = orgOpportunities.length;
+
+    if (!orgOpportunities.length) {
+      orgOpportunitiesList.innerHTML =
+        "<li>No active opportunities posted yet.</li>";
+      statusMessage.textContent = "No opportunities found.";
+      return;
+    }
+
+    orgOpportunities.forEach((op) => {
       const li = document.createElement("li");
+      li.className =
+        "flex justify-between items-center py-2 border-b border-gray-200";
       li.innerHTML = `
-        <span>${data.title} - ${data.date} (${data.time})</span>
-        <button data-id="${docSnap.id}" class="delete-btn">Delete</button>
+        <span><strong>${op.title}</strong> - ${op.start_date} (${op.time})</span>
+        <button data-id="${op.id}" class="btn btn-secondary btn-sm delete-btn">Delete</button>
       `;
-      listEl.appendChild(li);
-      count++;
+      orgOpportunitiesList.appendChild(li);
     });
 
-    totalEl.textContent = count;
-
-    // Attach Delete listeners
+    // Attach delete listeners
     document.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const oppId = btn.dataset.id;
+        if (!confirm("Are you sure you want to delete this opportunity?"))
+          return;
 
-        // Delete from Node.js API
-        await fetch(`/api/opportunities/${oppId}`, {
+        const delRes = await fetch(`/api/opportunities/${oppId}`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ org_id: window.currentOrgId }),
         });
 
-        // Delete from Firebase
-        await deleteDoc(doc(getOpportunitiesCollectionRef(), oppId));
+        if (delRes.ok) {
+          btn.parentElement.remove();
+          orgOpportunityCount.textContent =
+            parseInt(orgOpportunityCount.textContent) - 1;
+          statusMessage.textContent = "Opportunity deleted.";
+        } else {
+          statusMessage.textContent = "Failed to delete opportunity.";
+        }
       });
     });
-  });
+
+    statusMessage.textContent = "Opportunities loaded.";
+  } catch (err) {
+    console.error(err);
+    orgOpportunitiesList.innerHTML =
+      "<li class='text-red-500'>Failed to load opportunities.</li>";
+    statusMessage.textContent = "Error loading opportunities.";
+  }
 }
 
-// ---------- Add Opportunity ----------
-async function handleAddOpportunity(e, orgId) {
+// ---------- Add New Opportunity ----------
+async function handleAddOpportunity(e) {
   e.preventDefault();
 
   const title = document.getElementById("opportunity-title").value;
-  const date = document.getElementById("opportunity-date").value;
+  const start_date = document.getElementById("opportunity-date").value;
   const time = document.getElementById("opportunity-time").value;
+  const duration = parseFloat(
+    document.getElementById("opportunity-duration").value
+  );
   const description = document.getElementById("opportunity-description").value;
 
-  if (!title || !date || !time || !description) {
+  if (!title || !start_date || !time || !duration || !description) {
     alert("All fields are required.");
     return;
   }
 
-  // 1️⃣ Add to Node.js API
-  const res = await fetch(
-    `/api/org/${encodeURIComponent(orgId)}/opportunities`,
-    {
+  const body = { title, start_date, time, duration, description };
+
+  try {
+    const res = await fetch(`/api/org/${window.currentOrgId}/opportunities`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, time, description }),
-    }
-  );
+      body: JSON.stringify(body),
+    });
 
-  const newOpp = await res.json();
+    if (!res.ok) throw new Error("Failed to post opportunity");
 
-  // 2️⃣ Mirror to Firebase
-  await addDoc(getOpportunitiesCollectionRef(), { ...newOpp, orgId });
+    // Clear form
+    e.target.reset();
+    statusMessage.textContent = "Opportunity added successfully.";
+
+    // Reload opportunities
+    loadOpportunities();
+  } catch (err) {
+    console.error(err);
+    statusMessage.textContent = "Error posting opportunity.";
+  }
 }
 
 // ---------- Initialize Dashboard ----------
@@ -122,12 +143,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const email = urlParams.get("email");
   if (!email) return alert("No email provided.");
 
-  const org = await loadOrganizationProfile(email);
-  window.currentOrgId = org.id;
-
-  loadOpportunitiesRealtime();
+  await loadOrganizationProfile(email);
+  await loadOpportunities();
 
   document
     .getElementById("new-opportunity-form")
-    .addEventListener("submit", (e) => handleAddOpportunity(e, org.id));
+    .addEventListener("submit", handleAddOpportunity);
 });
