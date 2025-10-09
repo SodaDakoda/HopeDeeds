@@ -1,201 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Organization Dashboard | HopeDeeds</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-  </head>
-  <body>
-    <header>
-      <div class="container">
-        <nav>
-          <div class="logo">Hope<span>Deeds</span></div>
-          <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="opportunities.html">Opportunities</a></li>
-            <li><a href="org-dashboard.html" class="active">Dashboard</a></li>
-            <li><a href="login.html" class="btn btn-secondary">Log Out</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email");
 
-    <main>
-      <div class="container dashboard-layout">
-        <!-- Left Column: Organization Info & Opportunities -->
-        <div class="main-dashboard-area">
-          <h1 id="welcome-message">Welcome Back, Organization!</h1>
+    if (!email) {
+      document.getElementById("welcome-message").textContent =
+        "Welcome! Please log in to view your dashboard.";
+      return;
+    }
 
-          <section class="dashboard-section profile-card">
-            <h2><i class="fas fa-building"></i> Organization Details</h2>
-            <table class="profile-table">
-              <tr>
-                <th>Organization Name</th>
-                <td id="data-org-name">Loading...</td>
-              </tr>
-              <tr>
-                <th>Email</th>
-                <td id="data-email">Loading...</td>
-              </tr>
-              <tr>
-                <th>Phone</th>
-                <td id="data-phone">Loading...</td>
-              </tr>
-              <tr>
-                <th>Address</th>
-                <td id="data-address">Loading...</td>
-              </tr>
-              <tr>
-                <th>Volunteer Opportunities Posted</th>
-                <td id="data-opportunities">Loading...</td>
-              </tr>
-            </table>
-            <div class="action-buttons">
-              <button class="btn btn-primary">Update Organization Info</button>
-            </div>
-          </section>
+    // --------------------- Helper ---------------------
+    const fetchOrgData = async () => {
+      try {
+        const res = await fetch(
+          `/api/organization/${encodeURIComponent(email)}`
+        );
+        if (!res.ok) throw new Error("Organization not found");
+        const org = await res.json();
 
-          <section class="dashboard-section">
-            <h2><i class="fas fa-plus-circle"></i> Add New Opportunity</h2>
-            <form id="new-opportunity-form">
-              <div class="form-group">
-                <label for="opportunity-title">Title</label>
-                <input type="text" id="opportunity-title" required />
-              </div>
-              <div class="form-group">
-                <label for="opportunity-date">Date</label>
-                <input type="date" id="opportunity-date" required />
-              </div>
-              <div class="form-group">
-                <label for="opportunity-time">Time</label>
-                <input type="time" id="opportunity-time" required />
-              </div>
-              <div class="form-group">
-                <label for="opportunity-description">Description</label>
-                <textarea
-                  id="opportunity-description"
-                  rows="3"
-                  required
-                ></textarea>
-              </div>
-              <button type="submit" class="btn btn-secondary">
-                Add Opportunity
-              </button>
-            </form>
-          </section>
+        // Update profile info
+        document.getElementById(
+          "welcome-message"
+        ).textContent = `Welcome Back, ${org.org_name.split(" ")[0]}!`;
+        document.getElementById("data-org-name").textContent = org.org_name;
+        document.getElementById("data-email").textContent = org.email;
+        document.getElementById("data-phone").textContent = org.phone || "N/A";
+        document.getElementById("data-address").textContent =
+          org.address || "N/A";
 
-          <section class="dashboard-section">
-            <h2><i class="fas fa-list"></i> Posted Opportunities</h2>
-            <ul id="org-opportunities-list" class="shift-list">
-              <li>Loading opportunities...</li>
-            </ul>
-          </section>
-        </div>
+        // Fetch opportunities posted by this org
+        const oppRes = await fetch(
+          `/api/org/${encodeURIComponent(email)}/opportunities`
+        );
+        let opportunities = [];
+        if (oppRes.ok) opportunities = await oppRes.json();
 
-        <!-- Right Column: Quick Links / Notifications -->
-        <div class="sidebar-dashboard-area">
-          <section class="dashboard-section">
-            <h2><i class="fas fa-bell"></i> Notifications</h2>
-            <p>New volunteer signups: 3</p>
-            <p>Pending opportunity approvals: 1</p>
-          </section>
-
-          <section class="dashboard-section">
-            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <div class="action-buttons">
-              <button class="btn btn-primary">
-                Review Volunteer Applications
-              </button>
-              <button class="btn btn-secondary">Manage Opportunities</button>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-
-    <footer>
-      <div class="container footer-content">
-        <div class="footer-section">
-          <h4>HopeDeeds</h4>
-          <p>&copy; 2025 Volunteer Management Platform.</p>
-        </div>
-        <div class="footer-section">
-          <h4>Contact</h4>
-          <p>Email: info@hopedeeds.org</p>
-        </div>
-        <div class="footer-section">
-          <h4>Connect</h4>
-          <ul class="social-links">
-            <li>
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-            </li>
-            <li>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-            </li>
-            <li>
-              <a href="#"><i class="fab fa-instagram"></i></a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </footer>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const email = urlParams.get("email");
-
-        if (!email) {
-          document.getElementById("welcome-message").textContent =
-            "Welcome! Please log in to view your dashboard.";
-          return;
+        const opportunitiesList = document.getElementById(
+          "org-opportunities-list"
+        );
+        opportunitiesList.innerHTML = "";
+        if (opportunities.length > 0) {
+          opportunities.forEach((opp) => {
+            const li = document.createElement("li");
+            li.textContent = `${opp.title} - ${opp.date} (${opp.time})`;
+            opportunitiesList.appendChild(li);
+          });
+        } else {
+          opportunitiesList.innerHTML = "<li>No opportunities posted yet.</li>";
         }
 
-        // Fetch organization data (mock API for now)
-        fetch(`/api/organization/${encodeURIComponent(email)}`)
-          .then((res) => res.json())
-          .then((data) => {
-            document.getElementById(
-              "welcome-message"
-            ).textContent = `Welcome Back, ${data.name.split(" ")[0]}!`;
-            document.getElementById("data-org-name").textContent = data.name;
-            document.getElementById("data-email").textContent = data.email;
-            document.getElementById("data-phone").textContent = data.phone;
-            document.getElementById("data-address").textContent =
-              data.address || "N/A";
+        document.getElementById("data-opportunities").textContent =
+          opportunities.length;
+      } catch (err) {
+        console.error("Error loading organization:", err);
+        document.getElementById("welcome-message").textContent =
+          "Error loading dashboard.";
+      }
+    };
 
-            const opportunitiesList = document.getElementById(
-              "org-opportunities-list"
-            );
-            opportunitiesList.innerHTML = "";
-            if (data.opportunities && data.opportunities.length > 0) {
-              data.opportunities.forEach((opp) => {
-                const li = document.createElement("li");
-                li.textContent = `${opp.title} - ${opp.date} (${opp.time})`;
-                opportunitiesList.appendChild(li);
-              });
-            } else {
-              opportunitiesList.innerHTML =
-                "<li>No opportunities posted yet.</li>";
-            }
+    fetchOrgData();
 
-            document.getElementById("data-opportunities").textContent =
-              data.opportunities.length;
-          })
-          .catch((err) => console.error("Error loading organization:", err));
+    // --------------------- Add New Opportunity ---------------------
+    const form = document.getElementById("new-opportunity-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-        // Handle new opportunity submission
-        const form = document.getElementById("new-opportunity-form");
-        form.addEventListener("submit", (e) => {
-          e.preventDefault();
-          alert("New opportunity added! (You can wire this to your API)");
-        });
-      });
-    </script>
-  </body>
-</html>
+      const title = document.getElementById("opportunity-title").value.trim();
+      const date = document.getElementById("opportunity-date").value;
+      const time = document.getElementById("opportunity-time").value;
+      const description = document
+        .getElementById("opportunity-description")
+        .value.trim();
+
+      if (!title || !date || !time || !description) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `/api/org/${encodeURIComponent(email)}/opportunities`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, date, time, description }),
+          }
+        );
+        if (!res.ok) throw new Error("Failed to add opportunity");
+
+        // Clear form
+        form.reset();
+
+        // Refresh dashboard list
+        fetchOrgData();
+        alert("Opportunity added successfully!");
+      } catch (err) {
+        console.error(err);
+        alert("Error adding opportunity. Check console for details.");
+      }
+    });
+  });
+</script>
