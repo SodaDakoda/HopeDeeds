@@ -1,14 +1,13 @@
 // organization_dashboard.js
 
-// ---------- Helpers ----------
 const orgOpportunitiesList = document.getElementById("org-opportunities-list");
 const orgOpportunityCount = document.getElementById("data-opportunities");
 const statusMessage = document.getElementById("status-message");
 
 // ---------- Load Organization Profile ----------
-async function loadOrganizationProfile(email) {
+async function loadOrganizationProfile() {
   try {
-    const res = await fetch(`/api/organization/${encodeURIComponent(email)}`);
+    const res = await fetch("/api/organization");
     if (!res.ok) throw new Error("Failed to fetch organization");
     const org = await res.json();
 
@@ -22,7 +21,6 @@ async function loadOrganizationProfile(email) {
     ).textContent = `Welcome, ${org.org_name}!`;
 
     window.currentOrgId = org.id;
-
     return org;
   } catch (err) {
     console.error(err);
@@ -38,11 +36,7 @@ async function loadOpportunities() {
     const res = await fetch("/api/opportunities");
     if (!res.ok) throw new Error("Failed to fetch opportunities");
 
-    const allOpportunities = await res.json();
-    const orgOpportunities = allOpportunities.filter(
-      (o) => o.org_id.toString() === window.currentOrgId.toString()
-    );
-
+    const orgOpportunities = await res.json();
     orgOpportunitiesList.innerHTML = "";
     orgOpportunityCount.textContent = orgOpportunities.length;
 
@@ -64,7 +58,6 @@ async function loadOpportunities() {
       orgOpportunitiesList.appendChild(li);
     });
 
-    // Attach delete listeners
     document.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const oppId = btn.dataset.id;
@@ -73,8 +66,6 @@ async function loadOpportunities() {
 
         const delRes = await fetch(`/api/opportunities/${oppId}`, {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ org_id: window.currentOrgId }),
         });
 
         if (delRes.ok) {
@@ -117,7 +108,7 @@ async function handleAddOpportunity(e) {
   const body = { title, start_date, time, duration, description };
 
   try {
-    const res = await fetch(`/api/org/${window.currentOrgId}/opportunities`, {
+    const res = await fetch("/api/opportunities", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -125,11 +116,8 @@ async function handleAddOpportunity(e) {
 
     if (!res.ok) throw new Error("Failed to post opportunity");
 
-    // Clear form
     e.target.reset();
     statusMessage.textContent = "Opportunity added successfully.";
-
-    // Reload opportunities
     loadOpportunities();
   } catch (err) {
     console.error(err);
@@ -139,11 +127,7 @@ async function handleAddOpportunity(e) {
 
 // ---------- Initialize Dashboard ----------
 document.addEventListener("DOMContentLoaded", async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const email = urlParams.get("email");
-  if (!email) return alert("No email provided.");
-
-  await loadOrganizationProfile(email);
+  await loadOrganizationProfile();
   await loadOpportunities();
 
   document
