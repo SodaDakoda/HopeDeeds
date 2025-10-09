@@ -3,101 +3,87 @@
     const urlParams = new URLSearchParams(window.location.search);
     const email = urlParams.get("email");
 
+    const welcomeMessage = document.getElementById("welcome-message");
+    const orgNameEl = document.getElementById("data-org-name");
+    const emailEl = document.getElementById("data-email");
+    const phoneEl = document.getElementById("data-phone");
+    const addressEl = document.getElementById("data-address");
+    const opportunitiesList = document.getElementById("org-opportunities-list");
+    const dataOpportunitiesEl = document.getElementById("data-opportunities");
+
     if (!email) {
-      document.getElementById("welcome-message").textContent =
-        "Welcome! Please log in to view your dashboard.";
+      welcomeMessage.textContent = "Welcome! Please log in to view your dashboard.";
       return;
     }
 
-    // --------------------- Helper ---------------------
+    // --------------------- Fetch Organization Data ---------------------
     const fetchOrgData = async () => {
       try {
-        const res = await fetch(
-          `/api/organization/${encodeURIComponent(email)}`
-        );
+        const res = await fetch(`/api/organization/${encodeURIComponent(email)}`);
         if (!res.ok) throw new Error("Organization not found");
+
         const org = await res.json();
 
         // Update profile info
-        document.getElementById(
-          "welcome-message"
-        ).textContent = `Welcome Back, ${org.org_name.split(" ")[0]}!`;
-        document.getElementById("data-org-name").textContent = org.org_name;
-        document.getElementById("data-email").textContent = org.email;
-        document.getElementById("data-phone").textContent = org.phone || "N/A";
-        document.getElementById("data-address").textContent =
-          org.address || "N/A";
+        welcomeMessage.textContent = `Welcome Back, ${org.org_name.split(" ")[0]}!`;
+        orgNameEl.textContent = org.org_name || "N/A";
+        emailEl.textContent = org.email || "N/A";
+        phoneEl.textContent = org.phone || "N/A";
+        addressEl.textContent = org.address || "N/A";
 
-        // Fetch opportunities posted by this org
-        const oppRes = await fetch(
-          `/api/org/${encodeURIComponent(email)}/opportunities`
-        );
-        let opportunities = [];
-        if (oppRes.ok) opportunities = await oppRes.json();
+        // Clear and show default message for opportunities until API exists
+        opportunitiesList.innerHTML = "<li>No opportunities posted yet.</li>";
+        dataOpportunitiesEl.textContent = 0;
 
-        const opportunitiesList = document.getElementById(
-          "org-opportunities-list"
-        );
-        opportunitiesList.innerHTML = "";
-        if (opportunities.length > 0) {
-          opportunities.forEach((opp) => {
-            const li = document.createElement("li");
-            li.textContent = `${opp.title} - ${opp.date} (${opp.time})`;
-            opportunitiesList.appendChild(li);
-          });
-        } else {
-          opportunitiesList.innerHTML = "<li>No opportunities posted yet.</li>";
+        // If you later add `/api/org/:email/opportunities`, uncomment:
+
+        const oppRes = await fetch(`/api/org/${encodeURIComponent(email)}/opportunities`);
+        if (oppRes.ok) {
+          const opportunities = await oppRes.json();
+          opportunitiesList.innerHTML = "";
+          if (opportunities.length > 0) {
+            opportunities.forEach((opp) => {
+              const li = document.createElement("li");
+              li.textContent = `${opp.title} - ${opp.date} (${opp.time})`;
+              opportunitiesList.appendChild(li);
+            });
+            dataOpportunitiesEl.textContent = opportunities.length;
+          }
         }
-
-        document.getElementById("data-opportunities").textContent =
-          opportunities.length;
+        */
       } catch (err) {
         console.error("Error loading organization:", err);
-        document.getElementById("welcome-message").textContent =
-          "Error loading dashboard.";
+        welcomeMessage.textContent = "Error loading dashboard.";
       }
     };
 
     fetchOrgData();
 
-    // --------------------- Add New Opportunity ---------------------
+    // --------------------- Handle New Opportunity Submission ---------------------
     const form = document.getElementById("new-opportunity-form");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      const title = document.getElementById("opportunity-title").value.trim();
-      const date = document.getElementById("opportunity-date").value;
-      const time = document.getElementById("opportunity-time").value;
-      const description = document
-        .getElementById("opportunity-description")
-        .value.trim();
+        const title = document.getElementById("opportunity-title").value.trim();
+        const date = document.getElementById("opportunity-date").value;
+        const time = document.getElementById("opportunity-time").value;
+        const description = document.getElementById("opportunity-description").value.trim();
 
-      if (!title || !date || !time || !description) {
-        alert("Please fill in all fields.");
-        return;
-      }
+        if (!title || !date || !time || !description) {
+          alert("Please fill in all fields.");
+          return;
+        }
 
-      try {
-        const res = await fetch(
-          `/api/org/${encodeURIComponent(email)}/opportunities`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, date, time, description }),
-          }
-        );
-        if (!res.ok) throw new Error("Failed to add opportunity");
+        // Temporarily alert until API exists
+        alert("Opportunity added! (API endpoint not yet implemented.)");
 
         // Clear form
         form.reset();
 
-        // Refresh dashboard list
+        // Refresh dashboard
         fetchOrgData();
-        alert("Opportunity added successfully!");
-      } catch (err) {
-        console.error(err);
-        alert("Error adding opportunity. Check console for details.");
-      }
-    });
+      });
+    }
   });
 </script>

@@ -13,7 +13,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// --- Middleware setup ---
+// --- Middleware ---
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -39,7 +39,8 @@ app.post("/register", async (req, res) => {
 
   try {
     const query = `
-      INSERT INTO volunteers (full_name, email, phone, birthdate, zipcode, emergency_contact, waiver_agreed, waiver_agreed_at, password)
+      INSERT INTO volunteers 
+        (full_name, email, phone, birthdate, zipcode, emergency_contact, waiver_agreed, waiver_agreed_at, password)
       VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8)
       RETURNING id
     `;
@@ -53,6 +54,7 @@ app.post("/register", async (req, res) => {
       data.waiver_agreed,
       Buffer.from(data.password).toString("base64"),
     ]);
+
     res.redirect(`/dashboard.html?email=${encodeURIComponent(data.email)}`);
   } catch (err) {
     console.error("Volunteer registration error:", err);
@@ -93,15 +95,13 @@ app.post("/login", async (req, res) => {
 // ---------------------- ORGANIZATION ROUTES ----------------------
 //
 
-// Serve Organization Login Page
-app.get("/org-login.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "org-login.html"));
-});
-
-// Serve Organization Registration Page
-app.get("/org-register.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "org-register.html"));
-});
+// Serve Organization Login & Register Pages
+app.get("/org-login.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "org-login.html"))
+);
+app.get("/org-register.html", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "org-register.html"))
+);
 
 // Organization Registration
 app.post("/org/register", async (req, res) => {
@@ -113,7 +113,8 @@ app.post("/org/register", async (req, res) => {
 
   try {
     const query = `
-      INSERT INTO organizations (org_name, email, phone, address, city, state, zipcode, contact_person, password)
+      INSERT INTO organizations 
+        (org_name, email, phone, address, city, state, zipcode, contact_person, password)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
       RETURNING id
     `;
@@ -128,6 +129,7 @@ app.post("/org/register", async (req, res) => {
       data.contact_person || "",
       Buffer.from(data.password).toString("base64"),
     ]);
+
     res.redirect(`/org-dashboard.html?email=${encodeURIComponent(data.email)}`);
   } catch (err) {
     console.error("Organization registration error:", err);
@@ -208,12 +210,71 @@ app.get("/api/organization/:email", async (req, res) => {
   }
 });
 
+// Get all opportunities for an organization
+app.get("/api/org/:email/opportunities", async (req, res) => {
+  const email = req.params.email;
+  try {
+    const orgResult = await pool.query(
+      "SELECT id FROM organizations WHERE email = $1",
+      [email]
+    );
+    if (orgResult.rows.length === 0)
+      return res.status(404).json({ error: "Organization not found" });
+    const orgId = orgResult.rows[0].id;
+
+    const oppResult = await pool.query(
+      "SELECT * FROM opportunities WHERE org_id = $1 ORDER BY date ASC, time ASC",
+      [orgId]
+    );
+    res.json(oppResult.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch opportunities" });
+  }
+});
+
+// Add new opportunity for an organization
+app.post("/api/org/:email/opportunities", async (req, res) => {
+  const email = req.params.email;
+  const { title, date, time, description } = req.body;
+
+  if (!title || !date || !time || !description)
+    return res.status(400).json({ error: "All fields are required" });
+
+  try {
+    const orgResult = await pool.query(
+      "SELECT id FROM organizations WHERE email = $1",
+      [email]
+    );
+    if (orgResult.rows.length === 0)
+      return res.status(404).json({ error: "Organization not found" });
+    const orgId = orgResult.rows[0].id;
+
+    const insertQuery = `
+      INSERT INTO opportunities (org_id, title, date, time, description)
+      VALUES ($1,$2,$3,$4,$5)
+      RETURNING *
+    `;
+    const insertResult = await pool.query(insertQuery, [
+      orgId,
+      title,
+      date,
+      time,
+      description,
+    ]);
+    res.status(201).json(insertResult.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add opportunity" });
+  }
+});
+
 //
 // ---------------------- DEFAULT ROUTES ----------------------
 //
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "index.html"))
+);
 
 app.listen(PORT, () => {
   console.log(`✅ HopeDeeds Server running at http://localhost:${PORT}`);
