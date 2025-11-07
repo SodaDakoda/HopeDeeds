@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Opportunity | HopeDeeds</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body class="bg-gray-50 text-gray-800">
+    <header class="bg-white shadow">
+      <div
+        class="container mx-auto flex justify-between items-center py-4 px-6"
+      >
+        <h1 class="text-2xl font-bold text-blue-700">
+          Hope<span class="text-orange-500">Deeds</span>
+        </h1>
+        <nav>
+          <ul class="flex gap-4 items-center">
+            <li><a href="organization_dashboard.html">Dashboard</a></li>
+            <li>
+              <a
+                href="login.html"
+                class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                >Log Out</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container mx-auto py-10 px-6">
+      <h2 class="text-3xl font-bold mb-6 text-blue-700">
+        <i class="fas fa-edit"></i> Edit Opportunity
+      </h2>
+
+      <form
+        id="edit-opportunity-form"
+        class="bg-white p-6 shadow rounded-lg space-y-4"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold mb-1">Title</label>
+            <input
+              type="text"
+              id="title"
+              class="form-input w-full border p-2 rounded"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Area</label>
+            <input
+              type="text"
+              id="area"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Start Date</label>
+            <input
+              type="date"
+              id="start_date"
+              class="form-input w-full border p-2 rounded"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Start Time</label>
+            <input
+              type="time"
+              id="start_time"
+              class="form-input w-full border p-2 rounded"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">End Time</label>
+            <input
+              type="time"
+              id="end_time"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Duration (hours)</label>
+            <input
+              type="number"
+              id="duration"
+              step="0.5"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Max Capacity</label>
+            <input
+              type="number"
+              id="max_capacity"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Frequency Type</label>
+            <select
+              id="frequency_type"
+              class="form-select w-full border p-2 rounded"
+            >
+              <option value="">One-time</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Recurs Until</label>
+            <input
+              type="date"
+              id="recur_until"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Special Type</label>
+            <input
+              type="text"
+              id="special_type"
+              class="form-input w-full border p-2 rounded"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 mt-3">Description</label>
+          <textarea
+            id="description"
+            rows="4"
+            class="form-textarea w-full border p-2 rounded"
+          ></textarea>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button
+            type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+          <a
+            href="organization_dashboard.html"
+            class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </a>
+        </div>
+      </form>
+    </main>
+
+    <script>
+      // Load existing opportunity info
+      async function loadOpportunity() {
+        const id = new URLSearchParams(window.location.search).get("id");
+        if (!id) return alert("Missing opportunity ID");
+
+        try {
+          const res = await fetch(`/api/opportunities/${id}`);
+          if (!res.ok) throw new Error("Failed to load opportunity");
+          const opp = await res.json();
+
+          // Fill form
+          document.getElementById("title").value = opp.title || "";
+          document.getElementById("area").value = opp.area || "";
+          document.getElementById("start_date").value = opp.start_date
+            ? new Date(opp.start_date).toISOString().split("T")[0]
+            : "";
+          document.getElementById("start_time").value = opp.start_time || "";
+          document.getElementById("end_time").value = opp.end_time || "";
+          document.getElementById("duration").value = opp.duration || "";
+          document.getElementById("max_capacity").value =
+            opp.max_capacity || "";
+          document.getElementById("frequency_type").value =
+            opp.frequency_type || "";
+          document.getElementById("recur_until").value = opp.recur_until
+            ? new Date(opp.recur_until).toISOString().split("T")[0]
+            : "";
+          document.getElementById("special_type").value =
+            opp.special_type || "";
+          document.getElementById("description").value = opp.description || "";
+        } catch (err) {
+          console.error("Error loading opportunity:", err);
+          alert("Error loading opportunity details.");
+        }
+      }
+
+      // Handle save
+      document
+        .getElementById("edit-opportunity-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = new URLSearchParams(window.location.search).get("id");
+          if (!id) return alert("Missing opportunity ID");
+
+          const body = {
+            title: document.getElementById("title").value,
+            area: document.getElementById("area").value,
+            start_date: document.getElementById("start_date").value,
+            start_time: document.getElementById("start_time").value,
+            end_time: document.getElementById("end_time").value,
+            duration:
+              parseFloat(document.getElementById("duration").value) || null,
+            max_capacity:
+              parseInt(document.getElementById("max_capacity").value) || null,
+            frequency_type:
+              document.getElementById("frequency_type").value || null,
+            recur_until: document.getElementById("recur_until").value || null,
+            special_type: document.getElementById("special_type").value || null,
+            description: document.getElementById("description").value,
+          };
+
+          try {
+            const res = await fetch(`/api/opportunities/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+            });
+
+            if (!res.ok) throw new Error("Failed to update opportunity");
+
+            alert("Opportunity updated successfully!");
+            window.location.href = "organization_dashboard.html";
+          } catch (err) {
+            console.error("Error updating opportunity:", err);
+            alert("Error saving opportunity changes.");
+          }
+        });
+
+      document.addEventListener("DOMContentLoaded", loadOpportunity);
+    </script>
+  </body>
+</html>

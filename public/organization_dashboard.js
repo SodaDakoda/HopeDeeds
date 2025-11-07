@@ -51,13 +51,29 @@ async function loadOpportunities() {
       const li = document.createElement("li");
       li.className =
         "flex justify-between items-center py-2 border-b border-gray-200";
+
+      // Clickable title -> opportunity details
       li.innerHTML = `
-        <span><strong>${op.title}</strong> - ${op.start_date} (${op.time})</span>
-        <button data-id="${op.id}" class="btn btn-secondary btn-sm delete-btn">Delete</button>
+        <span>
+          <a href="opportunity_details.html?id=${
+            op.id
+          }" class="text-blue-600 hover:underline font-semibold">
+            ${op.title}
+          </a>
+          <span class="text-gray-600"> - ${op.start_date || "TBD"} (${
+        op.time || "TBD"
+      })</span>
+        </span>
+        <button data-id="${
+          op.id
+        }" class="btn btn-secondary btn-sm delete-btn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+          <i class="fas fa-trash"></i>
+        </button>
       `;
       orgOpportunitiesList.appendChild(li);
     });
 
+    // Delete functionality
     document.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const oppId = btn.dataset.id;
