@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opportunity Details | HopeDeeds</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div
+        class="container mx-auto flex justify-between items-center py-4 px-6"
+      >
+        <h1 class="text-2xl font-bold text-blue-700">
+          Hope<span class="text-orange-500">Deeds</span>
+        </h1>
+        <nav>
+          <ul class="flex gap-4 items-center">
+            <li><a href="index.html">Home</a></li>
+            <li>
+              <a
+                href="organization_dashboard.html"
+                class="text-blue-600 font-semibold"
+                >Dashboard</a
+              >
+            </li>
+            <li>
+              <a
+                href="/org/logout"
+                class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+                >Log Out</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-10 px-6">
+      <button
+        onclick="window.history.back()"
+        class="text-blue-600 hover:underline mb-4 inline-flex items-center gap-2"
+      >
+        <i class="fas fa-arrow-left"></i> Back to Opportunities
+      </button>
+
+      <!-- Opportunity Details Card -->
+      <div
+        id="opportunity-details"
+        class="bg-white shadow-md rounded-lg p-6 border-l-4 border-blue-500 mb-10"
+      >
+        <h2 class="text-3xl font-bold mb-2" id="opp-title">
+          <i class="fas fa-calendar-alt text-blue-600"></i> Loading...
+        </h2>
+        <p id="opp-description" class="text-gray-700 mb-4 italic">
+          Please wait while we load this opportunity.
+        </p>
+        <div id="opp-info" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="mt-6 flex gap-3">
+        <a
+          href="organization_dashboard.html"
+          class="btn btn-secondary bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+        >
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <button
+          id="edit-opportunity-btn"
+          class="btn btn-primary bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          <i class="fas fa-edit"></i> Edit Opportunity
+        </button>
+        <button
+          id="deactivate-opportunity-btn"
+          class="btn bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          <i class="fas fa-ban"></i> Mark as Filled / Inactive
+        </button>
+      </div>
+
+      <!-- Volunteer List -->
+      <section
+        class="bg-white shadow-md rounded-lg p-6 border-l-4 border-green-500 mt-10"
+      >
+        <h3 class="text-2xl font-semibold mb-4">
+          <i class="fas fa-users text-green-600"></i> Volunteers Signed Up
+        </h3>
+
+        <table class="w-full border-collapse">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-3 border-b text-left">Name</th>
+              <th class="p-3 border-b text-left">Email</th>
+              <th class="p-3 border-b text-left">Phone</th>
+              <th class="p-3 border-b text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="volunteer-table-body">
+            <tr>
+              <td colspan="4" class="p-3 text-center text-gray-500">
+                Loading volunteers...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 mt-10 py-6">
+      <div class="container mx-auto text-center text-gray-600">
+        &copy; 2025 HopeDeeds. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+      function fmtDate(d) {
+        return d
+          ? new Date(d).toLocaleDateString([], {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "N/A";
+      }
+
+      function fmtTime(t) {
+        if (!t) return "TBD";
+        if (t.includes("T")) t = t.split("T")[1];
+        t = t.replace("Z", "");
+        const dateObj = new Date(`1970-01-01T${t}`);
+        if (isNaN(dateObj)) return t;
+        return dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true, // change to false for 24-hour
+        });
+      }
+
+      async function loadOpportunity() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        const detailsDiv = document.getElementById("opportunity-details");
+        const volunteersTable = document.getElementById("volunteer-table-body");
+
+        if (!id) {
+          detailsDiv.innerHTML =
+            "<p class='text-red-600'>Invalid or missing opportunity ID.</p>";
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/opportunities/${id}`);
+          if (!res.ok) throw new Error("Failed to load opportunity");
+          const opp = await res.json();
+
+          const safe = (val, fallback = "N/A") =>
+            val !== null && val !== undefined && val !== "" ? val : fallback;
+
+          document.getElementById("opp-title").textContent = safe(opp.title);
+          document.getElementById("opp-description").textContent = safe(
+            opp.description,
+            "No description provided."
+          );
+
+          document.getElementById("opp-info").innerHTML = `
+            <p><strong>Date:</strong> ${fmtDate(opp.start_date)}</p>
+            <p><strong>Time:</strong> ${fmtTime(opp.start_time)} ${
+            opp.end_time ? "- " + fmtTime(opp.end_time) : ""
+          }</p>
+            <p><strong>Area:</strong> ${safe(opp.area, "General")}</p>
+            <p><strong>Duration:</strong> ${safe(
+              opp.duration,
+              "Unknown"
+            )} hrs</p>
+            <p><strong>Capacity:</strong> ${safe(
+              opp.max_capacity,
+              "Unlimited"
+            )}</p>
+            <p><strong>Frequency:</strong> ${safe(
+              opp.frequency_type,
+              "One-time"
+            )}</p>
+            <p><strong>Recurs Until:</strong> ${fmtDate(opp.recur_until)}</p>
+            <p><strong>Special:</strong> ${safe(opp.special_type, "None")}</p>
+          `;
+
+          const volunteers = Array.isArray(opp.volunteers)
+            ? opp.volunteers
+            : [];
+          volunteersTable.innerHTML = "";
+
+          if (!volunteers.length) {
+            volunteersTable.innerHTML = `
+              <tr><td colspan="4" class="p-3 text-center text-gray-500">
+                No volunteers signed up yet.
+              </td></tr>`;
+            return;
+          }
+
+          volunteers.forEach((v) => {
+            volunteersTable.insertAdjacentHTML(
+              "beforeend",
+              `
+              <tr class="hover:bg-gray-50">
+                <td class="p-3 border-b">${safe(v.full_name)}</td>
+                <td class="p-3 border-b">${safe(v.email, "-")}</td>
+                <td class="p-3 border-b">${safe(v.phone, "-")}</td>
+                <td class="p-3 border-b">${safe(v.status, "Confirmed")}</td>
+              </tr>`
+            );
+          });
+        } catch (err) {
+          console.error("Error loading opportunity:", err);
+          detailsDiv.innerHTML =
+            "<p class='text-red-600'>Error loading opportunity details.</p>";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadOpportunity);
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const id = new URLSearchParams(window.location.search).get("id");
+
+        document
+          .getElementById("edit-opportunity-btn")
+          ?.addEventListener("click", () => {
+            window.location.href = `edit_opportunity.html?id=${id}`;
+          });
+
+        document
+          .getElementById("deactivate-opportunity-btn")
+          ?.addEventListener("click", async () => {
+            if (
+              !confirm(
+                "Are you sure you want to mark this opportunity as filled?"
+              )
+            )
+              return;
+
+            const res = await fetch(`/api/opportunities/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "canceled" }),
+            });
+
+            if (res.ok) {
+              alert("Opportunity marked as filled!");
+              window.location.href = "organization_dashboard.html";
+            } else {
+              alert("Failed to update opportunity.");
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

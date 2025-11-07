@@ -219,17 +219,56 @@ const { adminOnly } = require("./middleware/auth");
 const { createShift, getShifts } = require("./controllers/shift.controller");
 
 // Get all volunteers
-app.get("/admin/volunteers", adminOnly, async (req, res) => {
+// Allow both admins and organization users to view volunteer profiles
+app.get("/admin/volunteers/:id", async (req, res) => {
+  const volunteerId = req.params.id;
+
   try {
-    const result = await pool.query(`
-      SELECT id, full_name, email, phone, zipcode, waiver_agreed, waiver_agreed_at, created_at
-      FROM volunteers
-      ORDER BY created_at DESC;
-    `);
-    res.json(result.rows);
+    const result = await pool.query(
+      `SELECT id, full_name, email, phone, zipcode, waiver_agreed, waiver_agreed_at, created_at
+       FROM volunteers
+       WHERE id = $1`,
+      [volunteerId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Volunteer not found" });
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error("Error fetching volunteers:", err);
-    res.status(500).json({ error: "Failed to fetch volunteers." });
+    console.error("Error fetching volunteer profile:", err);
+    res.status(500).json({ error: "Failed to load volunteer profile." });
+  }
+});
+
+// Volunteer shift history and total hours
+app.get("/admin/volunteers/:id/history", async (req, res) => {
+  const volunteerId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, shift_name, area, hours, date_worked, approved
+       FROM hours_log
+       WHERE volunteer_id = $1
+       ORDER BY date_worked DESC`,
+      [volunteerId]
+    );
+
+    const total = await pool.query(
+      `SELECT COALESCE(SUM(hours), 0) AS total_hours
+       FROM hours_log
+       WHERE volunteer_id = $1`,
+      [volunteerId]
+    );
+
+    res.json({
+      shifts: result.rows,
+      total_hours: total.rows[0].total_hours,
+    });
+  } catch (err) {
+    console.error("Error fetching volunteer history:", err);
+    res.status(500).json({ error: "Failed to fetch volunteer history." });
   }
 });
 

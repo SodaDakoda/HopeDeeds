@@ -6,7 +6,9 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
+
   <body>
+    <!-- Header -->
     <header>
       <div class="container">
         <nav>
@@ -19,65 +21,94 @@
       </div>
     </header>
 
-    <main class="container" style="padding: 40px 0">
+    <!-- Main -->
+    <main class="container py-10">
+      <!-- Volunteer Info -->
       <section
-        class="dashboard-section"
-        style="margin-bottom: 30px; border-left: 5px solid var(--secondary)"
+        class="dashboard-section mb-8 border-l-4 border-blue-500 bg-white shadow-md rounded-lg p-6"
       >
-        <h2><i class="fas fa-user"></i> Volunteer Information</h2>
+        <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-user text-blue-600"></i> Volunteer Information
+        </h2>
         <div id="volunteer-info">
           <p>Loading volunteer profile...</p>
         </div>
       </section>
 
-      <section class="dashboard-section">
-        <h2><i class="fas fa-clock"></i> Completed Shifts</h2>
-        <table id="shift-table">
-          <thead>
+      <!-- Completed Shifts -->
+      <section
+        class="dashboard-section border-l-4 border-green-500 bg-white shadow-md rounded-lg p-6"
+      >
+        <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-clock text-green-600"></i> Completed Shifts
+        </h2>
+
+        <table id="shift-table" class="w-full border-collapse">
+          <thead class="bg-gray-100 text-left">
             <tr>
-              <th>Shift Name</th>
-              <th>Area</th>
-              <th>Date</th>
-              <th>Hours</th>
-              <th>Status</th>
+              <th class="p-3 border-b">Shift Name</th>
+              <th class="p-3 border-b">Area</th>
+              <th class="p-3 border-b">Date</th>
+              <th class="p-3 border-b">Hours</th>
+              <th class="p-3 border-b">Status</th>
             </tr>
           </thead>
           <tbody id="shift-body">
             <tr>
-              <td colspan="5">Loading shifts...</td>
+              <td colspan="5" class="p-3 text-center text-gray-500">
+                Loading shifts...
+              </td>
             </tr>
           </tbody>
         </table>
 
-        <div style="margin-top: 20px">
-          <h3>
-            <i class="fas fa-hourglass-half"></i> Total Hours:
-            <span id="total-hours">0</span>
-          </h3>
+        <div class="mt-4 text-lg">
+          <strong><i class="fas fa-hourglass-half"></i> Total Hours:</strong>
+          <span id="total-hours" class="ml-2 font-semibold text-blue-600"
+            >0</span
+          >
         </div>
       </section>
+
+      <div class="mt-6">
+        <a
+          href="admin.html"
+          class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
+        >
+          <i class="fas fa-arrow-left"></i> Back to Admin Dashboard
+        </a>
+      </div>
     </main>
 
-    <footer>
-      <div class="container footer-content">
-        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
-      </div>
+    <!-- Footer -->
+    <footer class="mt-10 py-6 bg-gray-100 text-center text-gray-600">
+      &copy; 2025 HopeDeeds. All rights reserved.
     </footer>
 
+    <!-- Script -->
     <script>
       async function loadVolunteerProfile() {
         const params = new URLSearchParams(window.location.search);
         const id = params.get("id");
-        if (!id) return;
+        if (!id) {
+          document.getElementById("volunteer-info").innerHTML =
+            "<p style='color:red;'>Invalid volunteer ID.</p>";
+          return;
+        }
 
         const infoDiv = document.getElementById("volunteer-info");
         const tbody = document.getElementById("shift-body");
         const totalEl = document.getElementById("total-hours");
 
         try {
-          // Basic volunteer info
+          // --- Volunteer Info ---
           const res = await fetch(`/admin/volunteers/${id}`);
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Profile fetch failed (${res.status}): ${text}`);
+          }
           const volunteer = await res.json();
+
           infoDiv.innerHTML = `
             <p><strong>Name:</strong> ${volunteer.full_name}</p>
             <p><strong>Email:</strong> ${volunteer.email || "N/A"}</p>
@@ -85,35 +116,49 @@
             <p><strong>Zipcode:</strong> ${volunteer.zipcode || "N/A"}</p>
             <p><strong>Status:</strong> ${
               volunteer.waiver_agreed
-                ? "<span class='status-active'>Active</span>"
-                : "<span class='status-pending'>Pending Waiver</span>"
+                ? "<span class='status-active text-green-600 font-semibold'>Active</span>"
+                : "<span class='status-pending text-yellow-600 font-semibold'>Pending Waiver</span>"
             }</p>
             <p><strong>Joined:</strong> ${new Date(
               volunteer.created_at
             ).toLocaleDateString()}</p>
           `;
 
-          // Shifts + total hours
+          // --- Shifts + Hours ---
           const histRes = await fetch(`/admin/volunteers/${id}/history`);
-          const history = await histRes.json();
+          if (!histRes.ok) {
+            const text = await histRes.text();
+            throw new Error(
+              `History fetch failed (${histRes.status}): ${text}`
+            );
+          }
 
+          const history = await histRes.json();
           tbody.innerHTML = "";
-          if (!history.shifts.length) {
-            tbody.innerHTML =
-              "<tr><td colspan='5' style='text-align:center;color:gray;'>No completed shifts yet.</td></tr>";
+
+          if (!history.shifts?.length) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" class="p-3 text-center text-gray-500">
+                  No completed shifts yet.
+                </td>
+              </tr>`;
           } else {
             history.shifts.forEach((shift) => {
+              const shiftDate = shift.date_worked
+                ? new Date(shift.date_worked).toLocaleDateString()
+                : "N/A";
+              const statusText = shift.approved
+                ? "<span class='status-active text-green-600'>Approved</span>"
+                : "<span class='status-pending text-yellow-600'>Pending</span>";
+
               const row = `
-                <tr>
-                  <td>${shift.shift_name || "N/A"}</td>
-                  <td>${shift.area || "N/A"}</td>
-                  <td>${new Date(shift.date_worked).toLocaleDateString()}</td>
-                  <td>${shift.hours} hrs</td>
-                  <td>${
-                    shift.approved
-                      ? "<span class='status-active'>Approved</span>"
-                      : "<span class='status-pending'>Pending</span>"
-                  }</td>
+                <tr class="hover:bg-gray-50">
+                  <td class="p-3 border-b">${shift.shift_name || "N/A"}</td>
+                  <td class="p-3 border-b">${shift.area || "N/A"}</td>
+                  <td class="p-3 border-b">${shiftDate}</td>
+                  <td class="p-3 border-b">${shift.hours} hrs</td>
+                  <td class="p-3 border-b">${statusText}</td>
                 </tr>`;
               tbody.insertAdjacentHTML("beforeend", row);
             });
@@ -123,7 +168,7 @@
         } catch (err) {
           console.error("Error loading profile:", err);
           infoDiv.innerHTML =
-            "<p style='color:red;'>Error loading volunteer profile.</p>";
+            "<p class='text-red-600 font-semibold'>Error loading volunteer profile. Check console for details.</p>";
         }
       }
 

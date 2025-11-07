@@ -4,6 +4,30 @@ const orgOpportunitiesList = document.getElementById("org-opportunities-list");
 const orgOpportunityCount = document.getElementById("data-opportunities");
 const statusMessage = document.getElementById("status-message");
 
+// ---------- Helpers ----------
+function fmtDate(d) {
+  return d
+    ? new Date(d).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "N/A";
+}
+
+function fmtTime(t) {
+  if (!t) return "TBD";
+  if (t.includes("T")) t = t.split("T")[1];
+  t = t.replace("Z", "");
+  const dateObj = new Date(`1970-01-01T${t}`);
+  if (isNaN(dateObj)) return t;
+  return dateObj.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true, // set to false if you want 24-hour format
+  });
+}
+
 // ---------- Load Organization Profile ----------
 async function loadOrganizationProfile() {
   try {
@@ -51,8 +75,6 @@ async function loadOpportunities() {
       const li = document.createElement("li");
       li.className =
         "flex justify-between items-center py-2 border-b border-gray-200";
-
-      // Clickable title -> opportunity details
       li.innerHTML = `
         <span>
           <a href="opportunity_details.html?id=${
@@ -60,20 +82,17 @@ async function loadOpportunities() {
           }" class="text-blue-600 hover:underline font-semibold">
             ${op.title}
           </a>
-          <span class="text-gray-600"> - ${op.start_date || "TBD"} (${
-        op.time || "TBD"
-      })</span>
+          <span class="text-gray-600 text-sm ml-2">
+            ${fmtDate(op.start_date)} (${fmtTime(op.time)})
+          </span>
         </span>
         <button data-id="${
           op.id
-        }" class="btn btn-secondary btn-sm delete-btn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-          <i class="fas fa-trash"></i>
-        </button>
+        }" class="btn btn-secondary btn-sm delete-btn">Delete</button>
       `;
       orgOpportunitiesList.appendChild(li);
     });
 
-    // Delete functionality
     document.querySelectorAll(".delete-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const oppId = btn.dataset.id;
