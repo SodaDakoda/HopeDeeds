@@ -247,6 +247,22 @@ const { createShift, getShifts } = require("./controllers/shift.controller");
 
 // Get all volunteers
 // Allow both admins and organization users to view volunteer profiles
+
+// Get all volunteers (Admin View)
+app.get("/admin/volunteers", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, full_name, email, phone, zipcode, waiver_agreed, created_at
+       FROM volunteers
+       ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching volunteers:", err);
+    res.status(500).json({ error: "Failed to load volunteers." });
+  }
+});
+
 app.get("/admin/volunteers/:id", async (req, res) => {
   const volunteerId = req.params.id;
 
