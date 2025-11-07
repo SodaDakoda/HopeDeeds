@@ -395,3 +395,18 @@ footer a:hover {
     justify-content: center;
   }
 }
+
+/* === Admin Dashboard Fixes === */
+.status-active {
+  color: #28a745 !important; /* Green instead of orange */
+  font-weight: 700;
+}
+
+.table-action a {
+  color: #075677; /* Dark blue for contrast */
+  font-weight: 600;
+}
+
+.table-action a:hover {
+  color: var(--success); /* Orange hover to match brand accent */
+}
