@@ -174,13 +174,13 @@
               : "status-pending";
 
             const row = `
-              <tr>
-                <td>${v.full_name}</td>
-                <td class="${statusClass}">${status}</td>
-                <td>${v.zipcode || ""}</td>
-                <td>${new Date(v.created_at).toLocaleDateString()}</td>
-                <td><a href="#" style="color: var(--secondary);">View</a></td>
-              </tr>`;
+          <tr>
+            <td>${v.full_name}</td>
+            <td class="${statusClass}">${status}</td>
+            <td>${v.zipcode || ""}</td>
+            <td>${new Date(v.created_at).toLocaleDateString()}</td>
+            <td class="table-action"><a href="#">View</a></td>
+          </tr>`;
             tbody.insertAdjacentHTML("beforeend", row);
           });
         } catch (err) {

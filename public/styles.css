@@ -397,16 +397,33 @@ footer a:hover {
 }
 
 /* === Admin Dashboard Fixes === */
+
+/* Remove table row hover highlight */
+tbody tr:hover {
+  background-color: inherit !important;
+  cursor: default;
+}
+
+/* Status colors */
 .status-active {
-  color: #28a745 !important; /* Green instead of orange */
+  color: #28a745 !important; /* Green for active */
+  font-weight: 700;
+}
+.status-pending {
+  color: #f94144;
   font-weight: 700;
 }
 
+/* "View" action styling */
 .table-action a {
-  color: #075677; /* Dark blue for contrast */
+  color: #075677;
   font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 
 .table-action a:hover {
-  color: var(--success); /* Orange hover to match brand accent */
+  color: var(--success); /* orange hover */
+  text-decoration: none;
 }
