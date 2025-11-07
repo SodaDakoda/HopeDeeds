@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Opportunity Details | HopeDeeds</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind for layout utilities only -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
@@ -14,264 +14,193 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
 
-    <!-- HopeDeeds Theme -->
-    <style>
-      :root {
-        --primary: #075677; /* Dark Blue */
-        --secondary: #f8993a; /* Orange */
-        --background: #f9fafb;
-        --text-dark: #1f2937;
-        --card-bg: #ffffff;
-        --border-color: #e5e7eb;
-      }
-
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--background);
-        color: var(--text-dark);
-      }
-
-      header {
-        background-color: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      }
-
-      .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: var(--primary);
-      }
-
-      .logo span {
-        color: var(--secondary);
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-      }
-
-      .btn-primary {
-        background-color: var(--primary);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background-color: #1e40af;
-      }
-
-      .btn-secondary {
-        background-color: var(--secondary);
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background-color: #ea580c;
-      }
-
-      .dashboard-section {
-        background-color: var(--card-bg);
-        border-left: 5px solid var(--primary);
-        border-radius: 10px;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th {
-        background-color: var(--background);
-        color: #374151;
-        font-weight: 600;
-        text-align: left;
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      td {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .status-active {
-        color: green;
-        font-weight: 600;
-      }
-
-      .status-pending {
-        color: orange;
-        font-weight: 600;
-      }
-    </style>
-
-    <!-- Your existing custom CSS if needed -->
+    <!-- Your site theme (colors, buttons, cards, etc.) -->
     <link rel="stylesheet" href="styles.css" />
   </head>
 
-  <body class="bg-gray-50 text-gray-800">
-    <!-- Header -->
-    <header class="bg-white shadow">
-      <div
-        class="container mx-auto flex justify-between items-center py-4 px-6"
-      >
-        <h1 class="text-2xl font-bold text-blue-700">
-          Hope<span class="text-orange-500">Deeds</span>
-        </h1>
+  <body>
+    <!-- Header that matches your theme -->
+    <header>
+      <div class="container">
         <nav>
-          <ul class="flex gap-4 items-center">
+          <div class="logo">Hope<span>Deeds</span></div>
+          <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li>
-              <a
-                href="organization_dashboard.html"
-                class="text-blue-600 font-semibold"
-                >Dashboard</a
-              >
-            </li>
-            <li>
-              <a
-                href="/org/logout"
-                class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
-                >Log Out</a
-              >
-            </li>
+            <li><a href="opportunities.html">Opportunities</a></li>
+            <li><a href="organization_dashboard.html">Dashboard</a></li>
+            <li><a href="/org/logout" class="btn btn-secondary">Log Out</a></li>
           </ul>
         </nav>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto py-10 px-6">
-      <button
-        onclick="window.history.back()"
-        class="text-blue-600 hover:underline mb-4 inline-flex items-center gap-2"
-      >
-        <i class="fas fa-arrow-left"></i> Back to Opportunities
-      </button>
-
-      <!-- Opportunity Details Card -->
-      <div
-        id="opportunity-details"
-        class="bg-white shadow-md rounded-lg p-6 border-l-4 border-blue-500 mb-10"
-      >
-        <h2 class="text-3xl font-bold mb-2" id="opp-title">
-          <i class="fas fa-calendar-alt text-blue-600"></i> Loading...
-        </h2>
-        <p id="opp-description" class="text-gray-700 mb-4 italic">
-          Please wait while we load this opportunity.
-        </p>
-        <div id="opp-info" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="mt-6 flex gap-3">
+    <main>
+      <div class="container" style="padding: 40px 0">
         <a
           href="organization_dashboard.html"
-          class="btn btn-secondary bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+          class="btn button"
+          style="margin-bottom: 16px"
         >
-          <i class="fas fa-arrow-left"></i> Back
+          <i class="fas fa-arrow-left"></i>&nbsp; Back
         </a>
-        <button
-          id="edit-opportunity-btn"
-          class="btn btn-primary bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          <i class="fas fa-edit"></i> Edit Opportunity
-        </button>
-        <button
-          id="deactivate-opportunity-btn"
-          class="btn bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          <i class="fas fa-ban"></i> Mark as Filled / Inactive
-        </button>
+
+        <!-- Details card -->
+        <section class="dashboard-section" style="margin-bottom: 24px">
+          <h2>
+            <i class="fas fa-calendar-alt"></i>
+            <span id="opp-title">Loading...</span>
+          </h2>
+          <p id="opp-description" class="text-muted" style="margin-top: 6px">
+            Loading opportunity description…
+          </p>
+
+          <div
+            id="opp-info"
+            class="grid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+              gap: 12px;
+              margin-top: 14px;
+            "
+          ></div>
+
+          <div
+            style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap"
+          >
+            <a id="edit-link" class="btn btn-primary button" href="#">
+              <i class="fas fa-edit"></i>&nbsp; Edit Opportunity
+            </a>
+            <button
+              id="deactivate-btn"
+              class="btn btn-secondary button"
+              type="button"
+            >
+              <i class="fas fa-ban"></i>&nbsp; Mark as Filled / Inactive
+            </button>
+          </div>
+        </section>
+
+        <!-- Volunteers list card -->
+        <section class="dashboard-section">
+          <h2><i class="fas fa-users"></i> Volunteers Signed Up</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="volunteer-table-body">
+              <tr>
+                <td colspan="4">Loading volunteers…</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
       </div>
-
-      <!-- Volunteer List -->
-      <section
-        class="bg-white shadow-md rounded-lg p-6 border-l-4 border-green-500 mt-10"
-      >
-        <h3 class="text-2xl font-semibold mb-4">
-          <i class="fas fa-users text-green-600"></i> Volunteers Signed Up
-        </h3>
-
-        <table class="w-full border-collapse">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="p-3 border-b text-left">Name</th>
-              <th class="p-3 border-b text-left">Email</th>
-              <th class="p-3 border-b text-left">Phone</th>
-              <th class="p-3 border-b text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody id="volunteer-table-body">
-            <tr>
-              <td colspan="4" class="p-3 text-center text-gray-500">
-                Loading volunteers...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-100 mt-10 py-6">
-      <div class="container mx-auto text-center text-gray-600">
-        &copy; 2025 HopeDeeds. All rights reserved.
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-section">
+          <h4>HopeDeeds</h4>
+          <p>&copy; 2025 Volunteer Management Platform.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <p>Email: info@hopedeeds.org</p>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <ul class="social-links">
+            <li>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
       </div>
     </footer>
 
-    <!-- JavaScript -->
     <script>
-      function fmtDate(d) {
-        return d
-          ? new Date(d).toLocaleDateString([], {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "N/A";
+      // ---------- Small helpers ----------
+      function safe(val, fallback) {
+        return val !== null && val !== undefined && val !== ""
+          ? val
+          : fallback || "N/A";
       }
-
+      function fmtDate(d) {
+        if (!d) return "N/A";
+        const dt = new Date(d);
+        return isNaN(dt) ? d : dt.toLocaleDateString();
+      }
       function fmtTime(t) {
+        // We expect "HH:MM" or "HH:MM:SS" from Postgres TIME
         if (!t) return "TBD";
-        if (t.includes("T")) t = t.split("T")[1];
-        t = t.replace("Z", "");
-        const dateObj = new Date(`1970-01-01T${t}`);
-        if (isNaN(dateObj)) return t;
-        return dateObj.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true, // change to false for 24-hour
+        const parts = String(t).split(":");
+        if (parts.length >= 2) {
+          const hh = parts[0].padStart(2, "0");
+          const mm = parts[1].padStart(2, "0");
+          return hh + ":" + mm;
+        }
+        return t;
+      }
+      function setDeactivateHandler(id) {
+        var btn = document.getElementById("deactivate-btn");
+        if (!btn) return;
+        btn.addEventListener("click", async function () {
+          var ok = confirm("Mark this opportunity as filled/inactive?");
+          if (!ok) return;
+
+          // NOTE: This PUT expects your server to accept partial updates (status only).
+          // If your current PUT requires all fields, we should switch to a dedicated status endpoint.
+          try {
+            const res = await fetch("/api/opportunities/" + id, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "canceled" }),
+            });
+            if (res.ok) {
+              alert("Opportunity updated.");
+              window.location.href = "organization_dashboard.html";
+            } else {
+              alert("Failed to update opportunity.");
+            }
+          } catch (e) {
+            console.error(e);
+            alert("Failed to update opportunity.");
+          }
         });
       }
 
       async function loadOpportunity() {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
-        const detailsDiv = document.getElementById("opportunity-details");
-        const volunteersTable = document.getElementById("volunteer-table-body");
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get("id");
+        var infoDiv = document.getElementById("opp-info");
+        var volTbody = document.getElementById("volunteer-table-body");
+        var editLink = document.getElementById("edit-link");
 
         if (!id) {
-          detailsDiv.innerHTML =
-            "<p class='text-red-600'>Invalid or missing opportunity ID.</p>";
+          infoDiv.innerHTML =
+            "<p style='color: var(--danger);'>Missing opportunity id.</p>";
           return;
         }
 
+        // Set edit link immediately
+        editLink.setAttribute("href", "edit_opportunity.html?id=" + id);
+
         try {
-          const res = await fetch(`/api/opportunities/${id}`);
+          const res = await fetch("/api/opportunities/" + id);
           if (!res.ok) throw new Error("Failed to load opportunity");
           const opp = await res.json();
-
-          const safe = (val, fallback = "N/A") =>
-            val !== null && val !== undefined && val !== "" ? val : fallback;
 
           document.getElementById("opp-title").textContent = safe(opp.title);
           document.getElementById("opp-description").textContent = safe(
@@ -279,95 +208,88 @@
             "No description provided."
           );
 
-          document.getElementById("opp-info").innerHTML = `
-            <p><strong>Date:</strong> ${fmtDate(opp.start_date)}</p>
-            <p><strong>Time:</strong> ${fmtTime(opp.start_time)} ${
-            opp.end_time ? "- " + fmtTime(opp.end_time) : ""
-          }</p>
-            <p><strong>Area:</strong> ${safe(opp.area, "General")}</p>
-            <p><strong>Duration:</strong> ${safe(
-              opp.duration,
-              "Unknown"
-            )} hrs</p>
-            <p><strong>Capacity:</strong> ${safe(
-              opp.max_capacity,
-              "Unlimited"
-            )}</p>
-            <p><strong>Frequency:</strong> ${safe(
-              opp.frequency_type,
-              "One-time"
-            )}</p>
-            <p><strong>Recurs Until:</strong> ${fmtDate(opp.recur_until)}</p>
-            <p><strong>Special:</strong> ${safe(opp.special_type, "None")}</p>
-          `;
+          // Build the info grid safely without nested template strings
+          var pieces = [];
+          pieces.push(
+            "<p><strong>Date:</strong> " + fmtDate(opp.start_date) + "</p>"
+          );
 
-          const volunteers = Array.isArray(opp.volunteers)
-            ? opp.volunteers
-            : [];
-          volunteersTable.innerHTML = "";
+          var timeLabel =
+            "<p><strong>Time:</strong> " + fmtTime(opp.start_time);
+          if (opp.end_time) timeLabel += " - " + fmtTime(opp.end_time);
+          timeLabel += "</p>";
+          pieces.push(timeLabel);
 
+          pieces.push(
+            "<p><strong>Area:</strong> " + safe(opp.area, "General") + "</p>"
+          );
+          pieces.push(
+            "<p><strong>Duration:</strong> " +
+              safe(opp.duration, "Unknown") +
+              " hrs</p>"
+          );
+          pieces.push(
+            "<p><strong>Capacity:</strong> " +
+              safe(opp.max_capacity, "Unlimited") +
+              "</p>"
+          );
+          pieces.push(
+            "<p><strong>Frequency:</strong> " +
+              safe(opp.frequency_type, "One-time") +
+              "</p>"
+          );
+          pieces.push(
+            "<p><strong>Recurs Until:</strong> " +
+              fmtDate(opp.recur_until) +
+              "</p>"
+          );
+          pieces.push(
+            "<p><strong>Special:</strong> " +
+              safe(opp.special_type, "None") +
+              "</p>"
+          );
+
+          infoDiv.innerHTML = pieces.join("");
+
+          // Volunteers
+          var volunteers = Array.isArray(opp.volunteers) ? opp.volunteers : [];
+          volTbody.innerHTML = "";
           if (!volunteers.length) {
-            volunteersTable.innerHTML = `
-              <tr><td colspan="4" class="p-3 text-center text-gray-500">
-                No volunteers signed up yet.
-              </td></tr>`;
-            return;
+            volTbody.innerHTML =
+              "<tr><td colspan='4' style='text-align:center;color:gray;'>No volunteers signed up yet.</td></tr>";
+          } else {
+            // Build rows with simple string concat to avoid template pitfalls
+            var rows = "";
+            for (var i = 0; i < volunteers.length; i++) {
+              var v = volunteers[i];
+              rows +=
+                "<tr>" +
+                "<td>" +
+                safe(v.full_name) +
+                "</td>" +
+                "<td>" +
+                safe(v.email, "-") +
+                "</td>" +
+                "<td>" +
+                safe(v.phone, "-") +
+                "</td>" +
+                "<td>" +
+                safe(v.status, "Confirmed") +
+                "</td>" +
+                "</tr>";
+            }
+            volTbody.innerHTML = rows;
           }
 
-          volunteers.forEach((v) => {
-            volunteersTable.insertAdjacentHTML(
-              "beforeend",
-              `
-              <tr class="hover:bg-gray-50">
-                <td class="p-3 border-b">${safe(v.full_name)}</td>
-                <td class="p-3 border-b">${safe(v.email, "-")}</td>
-                <td class="p-3 border-b">${safe(v.phone, "-")}</td>
-                <td class="p-3 border-b">${safe(v.status, "Confirmed")}</td>
-              </tr>`
-            );
-          });
+          setDeactivateHandler(id);
         } catch (err) {
-          console.error("Error loading opportunity:", err);
-          detailsDiv.innerHTML =
-            "<p class='text-red-600'>Error loading opportunity details.</p>";
+          console.error(err);
+          infoDiv.innerHTML =
+            "<p style='color:red;'>Error loading opportunity details.</p>";
         }
       }
 
       document.addEventListener("DOMContentLoaded", loadOpportunity);
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const id = new URLSearchParams(window.location.search).get("id");
-
-        document
-          .getElementById("edit-opportunity-btn")
-          ?.addEventListener("click", () => {
-            window.location.href = `edit_opportunity.html?id=${id}`;
-          });
-
-        document
-          .getElementById("deactivate-opportunity-btn")
-          ?.addEventListener("click", async () => {
-            if (
-              !confirm(
-                "Are you sure you want to mark this opportunity as filled?"
-              )
-            )
-              return;
-
-            const res = await fetch(`/api/opportunities/${id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: "canceled" }),
-            });
-
-            if (res.ok) {
-              alert("Opportunity marked as filled!");
-              window.location.href = "organization_dashboard.html";
-            } else {
-              alert("Failed to update opportunity.");
-            }
-          });
-      });
     </script>
   </body>
 </html>
