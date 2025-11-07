@@ -14,7 +14,106 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
 
-    <!-- Custom CSS -->
+    <!-- HopeDeeds Theme -->
+    <style>
+      :root {
+        --primary: #2563eb; /* Blue */
+        --secondary: #f97316; /* Orange */
+        --background: #f9fafb;
+        --text-dark: #1f2937;
+        --card-bg: #ffffff;
+        --border-color: #e5e7eb;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--background);
+        color: var(--text-dark);
+      }
+
+      header {
+        background-color: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary);
+      }
+
+      .logo span {
+        color: var(--secondary);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-primary {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: #1e40af;
+      }
+
+      .btn-secondary {
+        background-color: var(--secondary);
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background-color: #ea580c;
+      }
+
+      .dashboard-section {
+        background-color: var(--card-bg);
+        border-left: 5px solid var(--primary);
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background-color: var(--background);
+        color: #374151;
+        font-weight: 600;
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      td {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .status-active {
+        color: green;
+        font-weight: 600;
+      }
+
+      .status-pending {
+        color: orange;
+        font-weight: 600;
+      }
+    </style>
+
+    <!-- Your existing custom CSS if needed -->
     <link rel="stylesheet" href="styles.css" />
   </head>
 
