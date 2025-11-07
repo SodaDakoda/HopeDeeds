@@ -237,6 +237,23 @@ app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
 );
 
+// Get individual volunteer profile by ID
+app.get("/admin/volunteers/:id", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, full_name, email, phone, zipcode, waiver_agreed, waiver_agreed_at, created_at
+       FROM volunteers WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ error: "Volunteer not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error fetching volunteer profile:", err);
+    res.status(500).json({ error: "Failed to load volunteer profile." });
+  }
+});
+
 // ---------------------- START SERVER ----------------------
 app.listen(PORT, () => {
   console.log(`✅ HopeDeeds Server running at http://localhost:${PORT}`);
