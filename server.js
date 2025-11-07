@@ -33,10 +33,6 @@ app.use(
   })
 );
 
-// ---------------------- VOLUNTEER ROUTES (unchanged) ----------------------
-
-// ... your existing volunteer routes ...
-
 // ---------------------- ORGANIZATION ROUTES ----------------------
 
 // Serve login/register pages
@@ -47,7 +43,7 @@ app.get("/org-register.html", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "org-register.html"))
 );
 
-// Register
+// Register new organization
 app.post("/org/register", async (req, res) => {
   const data = req.body;
   const required = ["org_name", "email", "password"];
@@ -106,7 +102,6 @@ app.post("/org/login", async (req, res) => {
     );
     if (decoded !== password) return res.status(401).send("Invalid login.");
 
-    // Save session
     req.session.orgId = result.rows[0].id;
     req.session.orgEmail = email;
 
@@ -125,7 +120,7 @@ app.get("/org/logout", (req, res) => {
   });
 });
 
-// Get organization profile (dashboard API)
+// Get organization profile
 app.get("/api/organization", async (req, res) => {
   const orgId = req.session.orgId;
   if (!orgId) return res.status(401).json({ error: "Not logged in" });
@@ -154,12 +149,16 @@ app.get("/api/opportunities", async (req, res) => {
 
   try {
     const result = await pool.query(
-      "SELECT * FROM opportunities WHERE org_id = $1 AND status='active' ORDER BY start_date ASC, time ASC",
+      `SELECT id, title, area, start_date, start_time, end_time, duration, max_capacity,
+              frequency_type, description, status
+       FROM opportunities
+       WHERE org_id = $1 AND status='active'
+       ORDER BY start_date ASC, start_time ASC`,
       [orgId]
     );
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching opportunities:", err);
     res.status(500).json({ error: "Failed to fetch opportunities" });
   }
 });
@@ -176,7 +175,7 @@ app.post("/api/opportunities", async (req, res) => {
   try {
     const query = `
       INSERT INTO opportunities
-      (org_id, title, start_date, time, duration, description, status)
+      (org_id, title, start_date, start_time, duration, description, status)
       VALUES ($1,$2,$3,$4,$5,$6,'active')
       RETURNING *
     `;
@@ -184,13 +183,13 @@ app.post("/api/opportunities", async (req, res) => {
       orgId,
       title,
       start_date,
-      time,
+      time, // maps to start_time in DB
       duration,
       description,
     ]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("Error creating opportunity:", err);
     res.status(500).json({ error: "Failed to create opportunity" });
   }
 });
@@ -210,15 +209,16 @@ app.delete("/api/opportunities/:id", async (req, res) => {
       return res.status(404).json({ error: "Opportunity not found" });
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting opportunity:", err);
     res.status(500).json({ error: "Failed to delete opportunity" });
   }
 });
+
 // ---------------------- ADMIN ROUTES ----------------------
 const { adminOnly } = require("./middleware/auth");
 const { createShift, getShifts } = require("./controllers/shift.controller");
 
-// Get all volunteers (Admin view)
+// Get all volunteers
 app.get("/admin/volunteers", adminOnly, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -233,182 +233,16 @@ app.get("/admin/volunteers", adminOnly, async (req, res) => {
   }
 });
 
-// ---------------------- SHIFT ROUTES (Admin) ----------------------
-
-// Create a new shift
+// Create shift
 app.post("/admin/shifts", adminOnly, createShift);
 
-// Get all shifts
+// Get shifts
 app.get("/admin/shifts", adminOnly, getShifts);
 
 // ---------------------- DEFAULT ROUTES ----------------------
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html"))
 );
-
-// Get individual volunteer profile by ID
-app.get("/admin/volunteers/:id", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT id, full_name, email, phone, zipcode, waiver_agreed, waiver_agreed_at, created_at
-       FROM volunteers WHERE id = $1`,
-      [req.params.id]
-    );
-    if (!result.rows.length)
-      return res.status(404).json({ error: "Volunteer not found" });
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Error fetching volunteer profile:", err);
-    res.status(500).json({ error: "Failed to load volunteer profile." });
-  }
-});
-
-// Log volunteer hours (admin action)
-app.post("/admin/volunteers/:id/hours", async (req, res) => {
-  const { hours, date_worked } = req.body;
-  const volunteerId = req.params.id;
-
-  if (!hours || !date_worked)
-    return res.status(400).json({ error: "Hours and date_worked required" });
-
-  try {
-    await pool.query(
-      `INSERT INTO hours_log (volunteer_id, hours, date_worked, approved)
-       VALUES ($1, $2, $3, true)`,
-      [volunteerId, hours, date_worked]
-    );
-
-    // Update totals
-    await pool.query(
-      `UPDATE volunteers
-       SET total_hours = COALESCE(total_hours, 0) + $1,
-           last_volunteered = GREATEST(COALESCE(last_volunteered, $2), $2)
-       WHERE id = $3`,
-      [hours, date_worked, volunteerId]
-    );
-
-    res.json({ success: true, message: "Hours logged successfully" });
-  } catch (err) {
-    console.error("Error logging volunteer hours:", err);
-    res.status(500).json({ error: "Failed to log hours." });
-  }
-});
-
-// Get volunteer history (shifts + total hours)
-app.get("/admin/volunteers/:id/history", async (req, res) => {
-  try {
-    const volunteerId = req.params.id;
-
-    const result = await pool.query(
-      `SELECT id, shift_name, area, hours, date_worked, approved
-       FROM hours_log
-       WHERE volunteer_id = $1
-       ORDER BY date_worked DESC`,
-      [volunteerId]
-    );
-
-    const total = await pool.query(
-      `SELECT COALESCE(SUM(hours), 0) AS total_hours
-       FROM hours_log
-       WHERE volunteer_id = $1`,
-      [volunteerId]
-    );
-
-    res.json({
-      shifts: result.rows,
-      total_hours: total.rows[0].total_hours,
-    });
-  } catch (err) {
-    console.error("Error fetching volunteer history:", err);
-    res.status(500).json({ error: "Failed to fetch volunteer history." });
-  }
-});
-
-// Get single opportunity details + volunteers signed up
-app.get("/api/opportunities/:id", async (req, res) => {
-  const oppId = req.params.id;
-  try {
-    const result = await pool.query(
-      `SELECT * FROM opportunities WHERE id = $1`,
-      [oppId]
-    );
-    if (!result.rows.length)
-      return res.status(404).json({ error: "Opportunity not found" });
-
-    const opportunity = result.rows[0];
-
-    // get volunteers signed up for this opportunity
-    const volunteers = await pool.query(
-      `SELECT v.id, v.full_name, v.email, v.phone, s.status
-       FROM signups s
-       JOIN volunteers v ON v.id = s.volunteer_id
-       WHERE s.opportunity_id = $1
-       ORDER BY v.full_name ASC`,
-      [oppId]
-    );
-
-    opportunity.volunteers = volunteers.rows;
-    res.json(opportunity);
-  } catch (err) {
-    console.error("Error fetching opportunity details:", err);
-    res.status(500).json({ error: "Failed to load opportunity details" });
-  }
-});
-
-// Update opportunity
-app.put("/api/opportunities/:id", async (req, res) => {
-  const id = req.params.id;
-  const orgId = req.session.orgId;
-  if (!orgId) return res.status(401).json({ error: "Not logged in" });
-
-  const {
-    title,
-    area,
-    start_date,
-    start_time,
-    end_time,
-    duration,
-    max_capacity,
-    frequency_type,
-    recur_until,
-    special_type,
-    description,
-  } = req.body;
-
-  try {
-    const result = await pool.query(
-      `UPDATE opportunities
-       SET title=$1, area=$2, start_date=$3, start_time=$4, end_time=$5,
-           duration=$6, max_capacity=$7, frequency_type=$8, recur_until=$9,
-           special_type=$10, description=$11
-       WHERE id=$12 AND org_id=$13
-       RETURNING *`,
-      [
-        title,
-        area,
-        start_date,
-        start_time,
-        end_time,
-        duration,
-        max_capacity,
-        frequency_type,
-        recur_until,
-        special_type,
-        description,
-        id,
-        orgId,
-      ]
-    );
-
-    if (!result.rows.length)
-      return res.status(404).json({ error: "Opportunity not found" });
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Error updating opportunity:", err);
-    res.status(500).json({ error: "Failed to update opportunity" });
-  }
-});
 
 // ---------------------- START SERVER ----------------------
 app.listen(PORT, () => {
