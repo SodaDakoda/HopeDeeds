@@ -7,11 +7,9 @@ const adminOnly = (req, res, next) => {
   }
 
   console.warn(`Unauthorized access attempt`);
-  return res
-    .status(403)
-    .json({
-      message: "Forbidden: You must be logged in as an organization admin.",
-    });
+  return res.status(403).json({
+    message: "Forbidden: You must be logged in as an organization admin.",
+  });
 };
 
 module.exports = { adminOnly };

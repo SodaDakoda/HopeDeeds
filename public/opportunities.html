@@ -38,11 +38,14 @@
         >
           <h2>Filter Opportunities</h2>
           <form id="opportunity-filters">
-            <div class="filter-controls">
+            <div class="filter-controls grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Date Filter -->
               <div class="form-group">
                 <label for="filter-date">Date</label>
                 <input type="date" id="filter-date" />
               </div>
+
+              <!-- Organization -->
               <div class="form-group">
                 <label for="filter-organization">Organization (Email/ID)</label>
                 <input
@@ -51,6 +54,8 @@
                   placeholder="e.g., org_a@test.com"
                 />
               </div>
+
+              <!-- Category -->
               <div class="form-group">
                 <label for="filter-type">Type (Category)</label>
                 <select id="filter-type">
@@ -58,9 +63,41 @@
                   <option value="Cleanup">Cleanup</option>
                   <option value="Food Bank">Food Bank</option>
                   <option value="Tutoring">Tutoring</option>
-                  <!-- Add more types/categories as needed -->
+                  <option value="Mentorship">Mentorship</option>
+                  <option value="Warehouse">Warehouse</option>
+                  <option value="Kitchen">Kitchen</option>
                 </select>
               </div>
+
+              <!-- Area Filter -->
+              <div class="form-group">
+                <label for="filter-area">Area</label>
+                <select id="filter-area">
+                  <option value="">All Areas</option>
+                  <option value="Kitchen">Kitchen</option>
+                  <option value="Warehouse">Warehouse</option>
+                  <option value="Intake">Intake</option>
+                  <option value="Mentor">Mentor</option>
+                  <option value="Front Desk">Front Desk</option>
+                  <option value="Community Center">Community Center</option>
+                </select>
+              </div>
+
+              <!-- Frequency / Schedule -->
+              <div class="form-group">
+                <label for="filter-schedule">Schedule</label>
+                <select id="filter-schedule">
+                  <option value="">All Schedules</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekday">Weekdays (Mon–Fri)</option>
+                  <option value="weekend">Weekends (Sat–Sun)</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="biweekly">Bi-Weekly</option>
+                  <option value="one-time">One-Time</option>
+                </select>
+              </div>
+
+              <!-- Submit -->
               <div class="form-group flex items-end">
                 <button
                   type="submit"
@@ -130,7 +167,7 @@
       </div>
     </footer>
 
-    <!-- Integrated volunteer JS logic -->
+    <!-- Volunteer Logic -->
     <script type="module" src="opportunities.js"></script>
   </body>
 </html>
