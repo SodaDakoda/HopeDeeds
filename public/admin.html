@@ -3,124 +3,201 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - HopeDeeds</title>
+    <title>Admin Dashboard | HopeDeeds</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <header>
-      <div class="container">
-        <nav>
-          <div class="logo">Hope<span>Deeds</span> (Admin)</div>
-          <ul class="nav-links">
-            <li><a href="dashboard.html">Volunteer View</a></li>
-            <li><a href="login.html">Logout</a></li>
-          </ul>
-        </nav>
+
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div
+        class="container mx-auto px-4 py-3 flex justify-between items-center"
+      >
+        <div class="text-2xl font-bold text-gray-800">
+          Hope<span class="text-blue-600">Deeds</span>
+          <span class="text-sm">(Admin)</span>
+        </div>
+        <ul class="flex space-x-6 text-gray-700">
+          <li>
+            <a
+              href="organization_dashboard.html"
+              class="hover:text-blue-600 transition"
+              ><i class="fas fa-briefcase"></i> Organization View</a
+            >
+          </li>
+          <li>
+            <a href="/org/logout" class="hover:text-red-600 transition"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </li>
+        </ul>
       </div>
     </header>
 
-    <main>
-      <div class="container admin-layout">
-        <aside class="sidebar">
-          <h3>Admin Tools</h3>
-          <ul class="sidebar-nav">
-            <li><a href="#volunteers" class="active">Volunteers</a></li>
-            <li><a href="#shifts">Shifts</a></li>
-            <li><a href="#reports">Reports</a></li>
-            <li><a href="#">Settings</a></li>
-          </ul>
-        </aside>
+    <!-- Main -->
+    <main class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
+      <!-- Sidebar -->
+      <aside
+        class="w-full lg:w-1/4 bg-white rounded-lg shadow-md p-4 border border-gray-200"
+      >
+        <h3 class="text-lg font-semibold mb-4 flex items-center">
+          <i class="fas fa-tools mr-2 text-blue-600"></i> Admin Tools
+        </h3>
+        <ul class="space-y-2">
+          <li>
+            <a
+              href="#volunteers"
+              class="block px-3 py-2 bg-blue-100 text-blue-700 font-medium rounded-md"
+              ><i class="fas fa-users mr-2"></i> Volunteers</a
+            >
+          </li>
+          <li>
+            <a
+              href="#shifts"
+              class="block px-3 py-2 hover:bg-gray-100 rounded-md"
+              ><i class="fas fa-calendar-alt mr-2"></i> Shifts</a
+            >
+          </li>
+          <li>
+            <a
+              href="#reports"
+              class="block px-3 py-2 hover:bg-gray-100 rounded-md"
+              ><i class="fas fa-chart-line mr-2"></i> Reports</a
+            >
+          </li>
+          <li>
+            <a
+              href="#settings"
+              class="block px-3 py-2 hover:bg-gray-100 rounded-md"
+              ><i class="fas fa-cog mr-2"></i> Settings</a
+            >
+          </li>
+        </ul>
+      </aside>
 
-        <section class="admin-content">
-          <div class="admin-section" id="volunteers">
-            <h2>Volunteer Management</h2>
-            <table>
-              <thead>
+      <!-- Admin Content -->
+      <section
+        class="flex-1 bg-white rounded-lg shadow-md p-6 border border-gray-200"
+      >
+        <!-- Volunteers -->
+        <div id="volunteers">
+          <h2 class="text-2xl font-semibold mb-4 flex items-center">
+            <i class="fas fa-users mr-2 text-blue-600"></i> Volunteer Management
+          </h2>
+
+          <div class="overflow-x-auto">
+            <table
+              class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm"
+            >
+              <thead class="bg-blue-600 text-white">
                 <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Total Hours</th>
-                  <th>Action</th>
+                  <th class="py-2 px-4 text-left">Name</th>
+                  <th class="py-2 px-4 text-left">Status</th>
+                  <th class="py-2 px-4 text-left">Zipcode</th>
+                  <th class="py-2 px-4 text-left">Joined</th>
+                  <th class="py-2 px-4 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="volunteer-table-body">
                 <tr>
-                  <td>Alice Johnson</td>
-                  <td class="status-active">Active</td>
-                  <td>125.5</td>
-                  <td><a href="#">View Profile</a></td>
-                </tr>
-                <tr>
-                  <td>Ben Carter</td>
-                  <td class="status-pending">Pending Waiver</td>
-                  <td>0</td>
-                  <td><a href="#">Approve</a></td>
-                </tr>
-                <tr>
-                  <td>Clara Diaz</td>
-                  <td class="status-active">Active</td>
-                  <td>42.0</td>
-                  <td><a href="#">View Profile</a></td>
+                  <td colspan="5" class="py-3 text-center text-gray-500">
+                    Loading volunteers...
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
+        </div>
 
-          <div class="admin-section" id="shifts">
-            <h2>Shift Calendar Mockup</h2>
-            <p>Click on a day to see detailed shifts.</p>
-            <table>
-              <thead>
-                <tr>
-                  <th class="calendar-day-header">Sun</th>
-                  <th class="calendar-day-header">Mon</th>
-                  <th class="calendar-day-header">Tue</th>
-                  <th class="calendar-day-header">Wed</th>
-                  <th class="calendar-day-header">Thu</th>
-                  <th class="calendar-day-header">Fri</th>
-                  <th class="calendar-day-header">Sat</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="calendar-day"></td>
-                  <td class="calendar-day"></td>
-                  <td class="calendar-day">1</td>
-                  <td class="calendar-day">2</td>
-                  <td class="calendar-day">3</td>
-                  <td class="calendar-day">4</td>
-                  <td class="calendar-day">5</td>
-                </tr>
-                <tr>
-                  <td class="calendar-day">6</td>
-                  <td class="calendar-day">7 - **Intake (3)**</td>
-                  <td class="calendar-day">8</td>
-                  <td class="calendar-day">9</td>
-                  <td class="calendar-day">10 - **Kitchen (5)**</td>
-                  <td class="calendar-day">11</td>
-                  <td class="calendar-day">12</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="admin-section" id="reports">
-            <h2>Reports & Analytics</h2>
-            <p>This section would contain charts and key metrics.</p>
-            <p>
-              <strong>Placeholder:</strong> Generate report for Q3 volunteer
-              retention and hour totals.
-            </p>
-            <a href="#" class="button btn-primary">Generate Report</a>
-          </div>
-        </section>
-      </div>
+        <!-- Reports Placeholder -->
+        <div id="reports" class="mt-10">
+          <h2 class="text-2xl font-semibold mb-4 flex items-center">
+            <i class="fas fa-chart-line mr-2 text-green-600"></i> Reports &
+            Analytics
+          </h2>
+          <p class="text-gray-600 mb-4">
+            Generate insights and performance reports for volunteer
+            participation and retention.
+          </p>
+          <button
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            <i class="fas fa-file-alt mr-2"></i> Generate Report
+          </button>
+        </div>
+      </section>
     </main>
 
-    <footer>
-      <div class="container footer-content">
-        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-4">
+      <div
+        class="container mx-auto text-center text-gray-600 text-sm flex flex-col sm:flex-row justify-center gap-2"
+      >
+        <span>&copy; 2025 HopeDeeds. All rights reserved.</span>
+        <span>|</span>
+        <span>Empowering volunteers to serve with purpose.</span>
       </div>
     </footer>
+
+    <!-- Script: Load volunteers dynamically -->
+    <script>
+      async function loadVolunteers() {
+        const tbody = document.getElementById("volunteer-table-body");
+        tbody.innerHTML =
+          "<tr><td colspan='5' class='text-center py-4 text-gray-500'>Loading...</td></tr>";
+
+        try {
+          const res = await fetch("/admin/volunteers");
+          if (!res.ok) throw new Error("Failed to fetch volunteers");
+          const volunteers = await res.json();
+          tbody.innerHTML = "";
+
+          if (!volunteers.length) {
+            tbody.innerHTML =
+              "<tr><td colspan='5' class='text-center py-4 text-gray-500'>No volunteers found.</td></tr>";
+            return;
+          }
+
+          volunteers.forEach((v) => {
+            const status = v.waiver_agreed ? "Active" : "Pending Waiver";
+            const statusColor = v.waiver_agreed
+              ? "text-green-600"
+              : "text-yellow-600";
+
+            const row = `
+              <tr class="border-b hover:bg-gray-50 transition">
+                <td class="py-2 px-4">${v.full_name}</td>
+                <td class="py-2 px-4 ${statusColor} font-semibold">${status}</td>
+                <td class="py-2 px-4">${v.zipcode || ""}</td>
+                <td class="py-2 px-4">${new Date(
+                  v.created_at
+                ).toLocaleDateString()}</td>
+                <td class="py-2 px-4 text-center">
+                  <button class="text-blue-600 hover:underline">
+                    <i class="fas fa-eye mr-1"></i> View
+                  </button>
+                </td>
+              </tr>`;
+            tbody.insertAdjacentHTML("beforeend", row);
+          });
+        } catch (err) {
+          console.error("Error loading volunteers:", err);
+          tbody.innerHTML =
+            "<tr><td colspan='5' class='text-center py-4 text-red-600'>Error loading volunteers.</td></tr>";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadVolunteers);
+    </script>
   </body>
 </html>
