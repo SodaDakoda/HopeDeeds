@@ -180,7 +180,9 @@
             <td>${v.zipcode || ""}</td>
             <td>${new Date(v.created_at).toLocaleDateString()}</td>
             <td class="table-action">
-              <a href="#" onclick="viewVolunteer(${v.id})">View</a>
+              <a href="volunteer_profile.html?id=${
+                v.id
+              }" style="cursor: pointer;">View</a>
             </td>
           </tr>`;
             tbody.insertAdjacentHTML("beforeend", row);

@@ -254,6 +254,67 @@ app.get("/admin/volunteers/:id", async (req, res) => {
   }
 });
 
+// Log volunteer hours (admin action)
+app.post("/admin/volunteers/:id/hours", async (req, res) => {
+  const { hours, date_worked } = req.body;
+  const volunteerId = req.params.id;
+
+  if (!hours || !date_worked)
+    return res.status(400).json({ error: "Hours and date_worked required" });
+
+  try {
+    await pool.query(
+      `INSERT INTO hours_log (volunteer_id, hours, date_worked, approved)
+       VALUES ($1, $2, $3, true)`,
+      [volunteerId, hours, date_worked]
+    );
+
+    // Update totals
+    await pool.query(
+      `UPDATE volunteers
+       SET total_hours = COALESCE(total_hours, 0) + $1,
+           last_volunteered = GREATEST(COALESCE(last_volunteered, $2), $2)
+       WHERE id = $3`,
+      [hours, date_worked, volunteerId]
+    );
+
+    res.json({ success: true, message: "Hours logged successfully" });
+  } catch (err) {
+    console.error("Error logging volunteer hours:", err);
+    res.status(500).json({ error: "Failed to log hours." });
+  }
+});
+
+// Get volunteer history (shifts + total hours)
+app.get("/admin/volunteers/:id/history", async (req, res) => {
+  try {
+    const volunteerId = req.params.id;
+
+    const result = await pool.query(
+      `SELECT id, shift_name, area, hours, date_worked, approved
+       FROM hours_log
+       WHERE volunteer_id = $1
+       ORDER BY date_worked DESC`,
+      [volunteerId]
+    );
+
+    const total = await pool.query(
+      `SELECT COALESCE(SUM(hours), 0) AS total_hours
+       FROM hours_log
+       WHERE volunteer_id = $1`,
+      [volunteerId]
+    );
+
+    res.json({
+      shifts: result.rows,
+      total_hours: total.rows[0].total_hours,
+    });
+  } catch (err) {
+    console.error("Error fetching volunteer history:", err);
+    res.status(500).json({ error: "Failed to fetch volunteer history." });
+  }
+});
+
 // ---------------------- START SERVER ----------------------
 app.listen(PORT, () => {
   console.log(`✅ HopeDeeds Server running at http://localhost:${PORT}`);

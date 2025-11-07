@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Volunteer Profile | HopeDeeds</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <div class="logo">Hope<span>Deeds</span></div>
+          <ul class="nav-links">
+            <li><a href="admin.html">Back to Admin</a></li>
+            <li><a href="/org/logout">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 40px 0">
+      <section
+        class="dashboard-section"
+        style="margin-bottom: 30px; border-left: 5px solid var(--secondary)"
+      >
+        <h2><i class="fas fa-user"></i> Volunteer Information</h2>
+        <div id="volunteer-info">
+          <p>Loading volunteer profile...</p>
+        </div>
+      </section>
+
+      <section class="dashboard-section">
+        <h2><i class="fas fa-clock"></i> Completed Shifts</h2>
+        <table id="shift-table">
+          <thead>
+            <tr>
+              <th>Shift Name</th>
+              <th>Area</th>
+              <th>Date</th>
+              <th>Hours</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="shift-body">
+            <tr>
+              <td colspan="5">Loading shifts...</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: 20px">
+          <h3>
+            <i class="fas fa-hourglass-half"></i> Total Hours:
+            <span id="total-hours">0</span>
+          </h3>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <p>&copy; 2025 HopeDeeds. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      async function loadVolunteerProfile() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        if (!id) return;
+
+        const infoDiv = document.getElementById("volunteer-info");
+        const tbody = document.getElementById("shift-body");
+        const totalEl = document.getElementById("total-hours");
+
+        try {
+          // Basic volunteer info
+          const res = await fetch(`/admin/volunteers/${id}`);
+          const volunteer = await res.json();
+          infoDiv.innerHTML = `
+            <p><strong>Name:</strong> ${volunteer.full_name}</p>
+            <p><strong>Email:</strong> ${volunteer.email || "N/A"}</p>
+            <p><strong>Phone:</strong> ${volunteer.phone || "N/A"}</p>
+            <p><strong>Zipcode:</strong> ${volunteer.zipcode || "N/A"}</p>
+            <p><strong>Status:</strong> ${
+              volunteer.waiver_agreed
+                ? "<span class='status-active'>Active</span>"
+                : "<span class='status-pending'>Pending Waiver</span>"
+            }</p>
+            <p><strong>Joined:</strong> ${new Date(
+              volunteer.created_at
+            ).toLocaleDateString()}</p>
+          `;
+
+          // Shifts + total hours
+          const histRes = await fetch(`/admin/volunteers/${id}/history`);
+          const history = await histRes.json();
+
+          tbody.innerHTML = "";
+          if (!history.shifts.length) {
+            tbody.innerHTML =
+              "<tr><td colspan='5' style='text-align:center;color:gray;'>No completed shifts yet.</td></tr>";
+          } else {
+            history.shifts.forEach((shift) => {
+              const row = `
+                <tr>
+                  <td>${shift.shift_name || "N/A"}</td>
+                  <td>${shift.area || "N/A"}</td>
+                  <td>${new Date(shift.date_worked).toLocaleDateString()}</td>
+                  <td>${shift.hours} hrs</td>
+                  <td>${
+                    shift.approved
+                      ? "<span class='status-active'>Approved</span>"
+                      : "<span class='status-pending'>Pending</span>"
+                  }</td>
+                </tr>`;
+              tbody.insertAdjacentHTML("beforeend", row);
+            });
+          }
+
+          totalEl.textContent = history.total_hours || 0;
+        } catch (err) {
+          console.error("Error loading profile:", err);
+          infoDiv.innerHTML =
+            "<p style='color:red;'>Error loading volunteer profile.</p>";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadVolunteerProfile);
+    </script>
+  </body>
+</html>
