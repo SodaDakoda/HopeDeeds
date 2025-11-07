@@ -194,6 +194,33 @@ app.post("/api/opportunities", async (req, res) => {
   }
 });
 
+// Get single opportunity by ID (for opportunity_details.html)
+app.get("/api/opportunities/:id", async (req, res) => {
+  const orgId = req.session.orgId;
+  if (!orgId) return res.status(401).json({ error: "Not logged in" });
+
+  const oppId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, org_id, title, description, area, start_date, start_time, end_time,
+              duration, max_capacity, frequency_type, recur_until, special_type, status
+       FROM opportunities
+       WHERE id = $1 AND org_id = $2`,
+      [oppId, orgId]
+    );
+
+    if (!result.rows.length)
+      return res.status(404).json({ error: "Opportunity not found" });
+
+    // Later we can join volunteers too if you want them shown under this opportunity
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error fetching opportunity details:", err);
+    res.status(500).json({ error: "Failed to fetch opportunity details" });
+  }
+});
+
 // Delete opportunity
 app.delete("/api/opportunities/:id", async (req, res) => {
   const orgId = req.session.orgId;
