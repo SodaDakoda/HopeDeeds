@@ -1,20 +1,17 @@
 // middleware/auth.js
 
-// Example: middleware to protect admin/manager routes
 const adminOnly = (req, res, next) => {
-  // Check that req.user exists (populated by your login/auth middleware)
-  if (req.user && (req.user.role === "admin" || req.user.role === "manager")) {
+  // Check that an organization is logged in via session
+  if (req.session && req.session.orgId) {
     return next(); // Authorized — continue to the route
   }
 
-  console.warn(
-    `Unauthorized access attempt by user ${
-      req.user ? req.user.email : "unknown"
-    }`
-  );
+  console.warn(`Unauthorized access attempt`);
   return res
     .status(403)
-    .json({ message: "Forbidden: Administrator access required." });
+    .json({
+      message: "Forbidden: You must be logged in as an organization admin.",
+    });
 };
 
 module.exports = { adminOnly };

@@ -214,6 +214,23 @@ app.delete("/api/opportunities/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete opportunity" });
   }
 });
+// ---------------------- ADMIN ROUTES ----------------------
+const { adminOnly } = require("./middleware/auth");
+
+// Get all volunteers (Admin view)
+app.get("/admin/volunteers", adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, full_name, email, phone, zipcode, waiver_agreed, waiver_agreed_at, created_at
+      FROM volunteers
+      ORDER BY created_at DESC;
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching volunteers:", err);
+    res.status(500).json({ error: "Failed to fetch volunteers." });
+  }
+});
 
 // ---------------------- DEFAULT ROUTES ----------------------
 app.get("/", (req, res) =>
