@@ -163,6 +163,42 @@ app.get("/api/opportunities", async (req, res) => {
   }
 });
 
+// Update opportunity (allows partial updates)
+app.put("/api/opportunities/:id", async (req, res) => {
+  const orgId = req.session.orgId;
+  if (!orgId) return res.status(401).json({ error: "Not logged in" });
+
+  const oppId = req.params.id;
+  const fields = req.body;
+
+  try {
+    const keys = Object.keys(fields);
+    if (!keys.length)
+      return res.status(400).json({ error: "No fields provided for update" });
+
+    // Dynamically build SET clause (safe and flexible)
+    const updates = keys.map((key, idx) => `${key} = $${idx + 1}`);
+    const values = Object.values(fields);
+    values.push(oppId, orgId);
+
+    const query = `
+      UPDATE opportunities
+      SET ${updates.join(", ")}
+      WHERE id = $${values.length - 1} AND org_id = $${values.length}
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, values);
+    if (!result.rows.length)
+      return res.status(404).json({ error: "Opportunity not found" });
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error updating opportunity:", err);
+    res.status(500).json({ error: "Failed to update opportunity" });
+  }
+});
+
 // Create opportunity
 app.post("/api/opportunities", async (req, res) => {
   const orgId = req.session.orgId;
